@@ -13,7 +13,7 @@ class API:
     def __init__(self, api_key, api_secret):
         self.api = pybitflyer.API(api_key=api_key, api_secret=api_secret)
         self.PRODUCT_CODE = "FX_BTC_JPY"
-        self.LEVERAGE = 2
+        self.LEVERAGE = 4
         self.DATABASE = "tradingbot"
 
     def order(self, side):
@@ -82,7 +82,9 @@ class API:
                 position = self.__get_position()
 
                 has_completed_close = \
-                    position["side"] is None or position["size"] < 0.01
+                    position["side"] is None or position["size"] < 0.01 \
+                    or self.__has_changed_side(side="CLOSE")
+
                 if has_completed_close:
                     sql = "delete from position"
                     repository.execute(
@@ -350,7 +352,7 @@ class API:
     def get_historical_price(self, limit):
         sql = """
                 select
-                    UNIX_TIMESTAMP(cast(Time as datetime)) as Time,
+                    cast(Time as datetime) as Date,
                     Open,
                     High,
                     Low,
@@ -394,10 +396,9 @@ class API:
             """.format(limit=limit)
 
         historical_price = repository.read_sql(database=self.DATABASE, sql=sql)
-        first_Time = int(historical_price.loc[0]["Time"])
-        first_date = datetime.datetime.fromtimestamp(first_Time)
-        sql = "delete from execution_history where date < '{first_date}'"\
-            .format(first_date=first_date)
+        first_Date = historical_price.loc[0]["Date"]
+        sql = "delete from execution_history where date < '{first_Date}'"\
+            .format(first_Date=first_Date)
         repository.execute(database=self.DATABASE, sql=sql, write=False)
         return historical_price
 
