@@ -25,8 +25,8 @@ sql = """
             (minute(Date)  = 55
         or  minute(Date) between 0 and 1
         or  minute(Date) = 29)
-        and
-            Date >= '2020-9-15 00:00:00'
+        # and
+            # Date >= '2020-9-15 00:00:00'
         order by
             Date
     """
@@ -64,7 +64,7 @@ for i in range(len(historical_Price)):
             roc = (now_Close - past_Close) / past_Close
 
             entry_Price = entry_data["Open"]
-            close_Price = close_data["Open"]
+            close_Price = close_data["Close"]
 
             amount = asset / entry_Price
 
