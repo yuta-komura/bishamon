@@ -7,10 +7,10 @@ bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
                         api_secret=Bitflyer.Api.value.SECRET.value)
 
 DATABASE = "tradingbot"
-latest_side = ""
+latest_side = None
 while True:
     try:
-        sql = "select * from entry order by date desc limit 1"
+        sql = "select * from entry"
         entry = repository.read_sql(database=DATABASE, sql=sql)
         if entry.empty:
             continue
@@ -19,7 +19,7 @@ while True:
         message.error(traceback.format_exc())
         continue
 
-    if not latest_side \
+    if latest_side is None \
             or latest_side != side:
         bitflyer.close()
         if side != "CLOSE":

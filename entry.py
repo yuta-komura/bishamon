@@ -18,12 +18,9 @@ def get_historical_price() -> pd.DataFrame or None:
         return None
 
 
-def save_entry(side, price):
+def save_entry(side):
     message.info(side, "entry")
-    sql = "delete from entry"
-    repository.execute(database=DATABASE, sql=sql, write=False)
-    sql = "insert into entry values(null,now(6),'{side}',{price})" \
-        .format(side=side, price=price)
+    sql = "update entry set side='{side}'".format(side=side)
     repository.execute(database=DATABASE, sql=sql, write=False)
 
 
@@ -61,13 +58,13 @@ while True:
         roc = (to_Close - fr_Close) / fr_Close
 
         if roc < 0:
-            save_entry(side="BUY", price=Price)
+            save_entry(side="BUY")
         else:
-            save_entry(side="SELL", price=Price)
+            save_entry(side="SELL")
 
         has_signal = True
 
     if Minute == 30 and has_signal:
-        save_entry(side="CLOSE", price=Price)
+        save_entry(side="CLOSE")
 
         has_signal = False

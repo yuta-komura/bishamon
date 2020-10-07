@@ -2,15 +2,10 @@
 CREATE DATABASE tradingbot;
 
 -- テーブル
-CREATE TABLE `entry` (
-    `process_id` int NOT NULL AUTO_INCREMENT,
-    `date` timestamp(6) NOT NULL,
-    `side` varchar(255) NOT NULL,
-    `price` int unsigned NOT NULL,
-    PRIMARY KEY (`process_id`)
-);
+CREATE TABLE `entry` (`side` varchar(255) NOT NULL);
 
 CREATE TABLE `position` (
+    `date` timestamp(6) NOT NULL,
     `side` varchar(255) NOT NULL,
     `size` float NOT NULL
 );
@@ -30,10 +25,5 @@ CREATE TABLE `ticker` (
     `best_bid` int unsigned NOT NULL,
     `best_ask` int unsigned NOT NULL
 );
-
-insert into
-    ticker
-values
-    (now(), 0, 0);
 
 commit;

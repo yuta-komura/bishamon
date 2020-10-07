@@ -1,4 +1,3 @@
-import datetime
 import time
 import traceback
 from enum import Enum
@@ -50,12 +49,12 @@ class API:
                         repository.read_sql(database=self.DATABASE, sql=sql)
 
                     if position.empty:
-                        sql = "insert into position values('{side}',{size})"\
+                        sql = "insert into position values(now(6),'{side}',{size})"\
                             .format(side=side, size=order_size)
                         repository.execute(
                             database=self.DATABASE, sql=sql, write=False)
                     else:
-                        sql = "update position set side='{side}',size={size}"\
+                        sql = "update position set date=now(6),side='{side}',size={size}"\
                             .format(side=side, size=order_size)
                         repository.execute(
                             database=self.DATABASE, sql=sql, write=False)
@@ -151,7 +150,7 @@ class API:
 
     def __has_changed_side(self, side):
         try:
-            sql = "select * from entry order by date desc limit 1"
+            sql = "select * from entry"
             entry = \
                 repository.read_sql(database=self.DATABASE, sql=sql)
             if entry.empty:

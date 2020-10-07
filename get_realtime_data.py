@@ -11,7 +11,7 @@ from threading import Thread
 
 import websocket
 
-from lib import repository
+from lib import repository, message
 from lib.config import Bitflyer
 
 # -------------------------------------
@@ -140,7 +140,17 @@ class bFwebsocket(object):
         websocketThread.start()
 
 
+def initialize():
+    sql = "select * from ticker"
+    ticker = repository.read_sql(database=database, sql=sql)
+    if ticker.empty:
+        message.info("initialize ticker")
+        sql = "insert into ticker values (now(),0,0)"
+        repository.execute(database=database, sql=sql, write=False)
+
+
 if __name__ == '__main__':
+    initialize()
     signal.signal(signal.SIGINT, quit_loop)
     ws = bFwebsocket(end_point, public_channels, private_channels, key, secret)
     ws.startWebsocket()
