@@ -28,8 +28,8 @@ def truncate_table():
 if __name__ == "__main__":
     DATABASE = "tradingbot"
 
-    stdout.amateras()
-    print("tradingbot AMATERAS start !!")
+    stdout.AA()
+    print("tradingbot bishamon start !!")
 
     message.info("initialize start")
 
