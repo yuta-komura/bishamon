@@ -1,5 +1,3 @@
-import datetime
-import time
 import traceback
 
 import pandas as pd
@@ -38,59 +36,38 @@ bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
 
 DATABASE = "tradingbot"
 
-is_buy_side = False
-is_sell_side = False
+Minute = None
+has_signal = False
 while True:
     historical_price = get_historical_price()
     if historical_price is None:
         continue
 
-    channel = historical_price[:-1]
-    high_line = channel["High"].max()
-    low_line = channel["Low"].min()
-
     i = len(historical_price) - 1
     latest = historical_price.iloc[i]
-    latest_Time = int(latest["Time"])
+    Date = latest["Date"]
+    Minute = Date.minute
+    Price = latest["Close"]
 
-    latest_High = latest["High"]
-    latest_Low = latest["Low"]
-    latest_Close = latest["Close"]
+    if Minute == 1 and not has_signal:
+        i = 0
+        fr = historical_price.iloc[i]
+        fr_Close = fr["Close"]
 
-    break_high_line = high_line < latest_High
-    break_low_line = low_line > latest_Low
+        i = len(historical_price) - 2
+        to = historical_price.iloc[i]
+        to_Close = to["Close"]
 
-    """
-        invalid_trading
-                             |  <- break
-        high_line --------- |¯|
-        low_line  --------- |_|
-                             |  <- break
-        天井や底で出る可能性が高い：手仕舞
-    """
-    invalid_trading = break_high_line and break_low_line
-    if invalid_trading:
-        l_minute = datetime.datetime.fromtimestamp(latest_Time).minute
-        while True:
-            minute = \
-                datetime.datetime.now().minute
-            if l_minute != minute:
-                break
-            time.sleep(1)
+        roc = (to_Close - fr_Close) / fr_Close
 
-        save_entry(side="CLOSE", price=latest_Close)
-        message.info("invalid trading")
-        continue
+        if roc < 0:
+            save_entry(side="BUY", price=Price)
+        else:
+            save_entry(side="SELL", price=Price)
 
-    order_buy = break_high_line and not is_buy_side
-    order_sell = break_low_line and not is_sell_side
+        has_signal = True
 
-    if order_buy:
-        save_entry(side="BUY", price=high_line)
-        is_buy_side = True
-        is_sell_side = False
+    if Minute == 30 and has_signal:
+        save_entry(side="CLOSE", price=Price)
 
-    if order_sell:
-        save_entry(side="SELL", price=low_line)
-        is_buy_side = False
-        is_sell_side = True
+        has_signal = False
