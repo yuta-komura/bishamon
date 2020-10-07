@@ -20,7 +20,7 @@ def bitflyerfx():
     response = requests.get(url, params=params)
     cryptowatch_json = response.json()["result"]["60"]
 
-    for i in1 range(len(cryptowatch_json)):
+    for i in range(len(cryptowatch_json)):
         try:
             if i == 0:
                 continue
