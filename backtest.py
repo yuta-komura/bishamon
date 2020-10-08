@@ -24,9 +24,9 @@ sql = """
         WHERE
             (minute(Date)  = 55
         or  minute(Date) between 0 and 1
-        or  minute(Date) = 28)
-        and
-            Date >= '2020-9-15 00:00:00'
+        or  minute(Date) = 27)
+        # and
+            # Date >= '2020-9-15 00:00:00'
         order by
             Date
     """
@@ -56,7 +56,7 @@ for i in range(len(historical_Price)):
 
             tD = past_Date + datetime.timedelta(hours=1)
             if tD.hour != now_Date.hour or now_Date.hour != entry_Date.hour or entry_Date.hour != close_Date.hour \
-                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 28:
+                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 27:
                 continue
 
             past_Close = past_data["Close"]
@@ -129,7 +129,7 @@ plt.show()
 strategy(title="Hourly Anomaly", overlay=true, initial_capital=10000,
          default_qty_type=strategy.percent_of_equity, default_qty_value=100)
 entry_min = 0
-duration = 28
+duration = 27
 min = minute(time)
 roc = (close[0] - close[5]) / close[5]
 
