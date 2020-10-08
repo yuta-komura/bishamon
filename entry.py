@@ -35,6 +35,7 @@ DATABASE = "tradingbot"
 
 Minute = None
 has_signal = False
+is_
 while True:
     historical_price = get_historical_price()
     if historical_price is None:
@@ -64,7 +65,7 @@ while True:
 
         has_signal = True
 
-    if Minute == 30 and has_signal:
+    if Minute == 28 and has_signal:
         save_entry(side="CLOSE")
 
         has_signal = False
