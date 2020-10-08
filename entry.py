@@ -35,7 +35,6 @@ DATABASE = "tradingbot"
 
 Minute = None
 has_signal = False
-is_
 while True:
     historical_price = get_historical_price()
     if historical_price is None:
