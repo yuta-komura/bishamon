@@ -27,7 +27,6 @@ class API:
                 has_position = position["side"] is not None
                 should_close = has_position \
                     and (side != position["side"] and position["size"] >= 0.01)
-
                 if should_close:
                     self.close()
                     continue
@@ -81,9 +80,7 @@ class API:
                 position = self.__get_position()
 
                 has_completed_close = \
-                    position["side"] is None or position["size"] < 0.01 \
-                    or self.__has_changed_side(side="CLOSE")
-
+                    position["side"] is None or position["size"] < 0.01
                 if has_completed_close:
                     sql = "delete from position"
                     repository.execute(
