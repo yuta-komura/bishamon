@@ -3,7 +3,7 @@ import traceback
 import pandas as pd
 
 from lib import bitflyer, message, repository
-from lib.config import Bitflyer, Virtual
+from lib.config import Anomaly, Bitflyer, HistoricalPrice
 
 
 def get_historical_price() -> pd.DataFrame or None:
@@ -24,8 +24,11 @@ def save_entry(side):
     repository.execute(database=DATABASE, sql=sql, write=False)
 
 
-TIME_FRAME = Virtual.Trade.value.TIME_FRAME.value
-CHANNEL_WIDTH = Virtual.Trade.value.CHANNEL_WIDTH.value
+ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
+CLOSE_MINUTE = Anomaly.CLOSE_MINUTE.value
+
+TIME_FRAME = HistoricalPrice.TIME_FRAME.value
+CHANNEL_WIDTH = HistoricalPrice.CHANNEL_WIDTH.value
 CHANNEL_BAR_NUM = TIME_FRAME * CHANNEL_WIDTH
 
 bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
@@ -46,7 +49,7 @@ while True:
     Minute = Date.minute
     Price = latest["Close"]
 
-    if Minute == 1 and not has_signal:
+    if Minute == ENTRY_MINUTE and not has_signal:
         i = 0
         fr = historical_price.iloc[i]
         fr_Close = fr["Close"]
@@ -64,7 +67,7 @@ while True:
 
         has_signal = True
 
-    if Minute == 28 and has_signal:
+    if Minute == CLOSE_MINUTE and has_signal:
         save_entry(side="CLOSE")
 
         has_signal = False
