@@ -1,6 +1,6 @@
 import pybitflyer
 
-from lib import repository, stdout, message
+from lib import message, repository, stdout
 from lib.config import Bitflyer
 from lib.exception import ConfigException
 
@@ -19,9 +19,6 @@ def config_test():
 
 def truncate_table():
     sql = "truncate entry"
-    repository.execute(database=DATABASE, sql=sql)
-
-    sql = "truncate position"
     repository.execute(database=DATABASE, sql=sql)
 
 

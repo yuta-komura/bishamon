@@ -39,26 +39,12 @@ class API:
                 has_completed_order = size < 0.01 \
                     or self.__has_changed_side(side=side)
                 if has_completed_order:
-                    order_size = self.__get_order_size(
-                        price=price, position_size=0)
-                    order_size = float(math.round_down(order_size, -2))
-
-                    sql = "select * from position"
-                    position = \
-                        repository.read_sql(database=self.DATABASE, sql=sql)
-
-                    if position.empty:
-                        sql = "insert into position values(now(6),'{side}',{size})"\
-                            .format(side=side, size=order_size)
-                        repository.execute(
-                            database=self.DATABASE, sql=sql, write=False)
-                    else:
-                        sql = "update position set date=now(6),side='{side}',size={size}"\
-                            .format(side=side, size=order_size)
-                        repository.execute(
-                            database=self.DATABASE, sql=sql, write=False)
                     message.info(side, "order complete")
-                    return
+                    order_side = side
+                    order_size = \
+                        self.__get_order_size(price=price, position_size=0)
+                    order_size = float(math.round_down(order_size, -2))
+                    return order_side, order_size
 
                 assert self.is_valid_side(side=side)
                 assert self.is_valid_size(size=size)
@@ -72,6 +58,7 @@ class API:
 
     def close(self):
         message.info("close start")
+        has_position = False
         while True:
             try:
                 self.api.cancelallchildorders(
@@ -82,11 +69,10 @@ class API:
                 has_completed_close = \
                     position["side"] is None or position["size"] < 0.01
                 if has_completed_close:
-                    sql = "delete from position"
-                    repository.execute(
-                        database=self.DATABASE, sql=sql, write=False)
                     message.info("close complete")
-                    return
+                    return has_position
+                else:
+                    has_position = True
 
                 side = self.__reverse_side(side=position["side"])
                 size = position["size"]

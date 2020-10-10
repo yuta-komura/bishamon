@@ -4,12 +4,6 @@ CREATE DATABASE tradingbot;
 -- テーブル
 CREATE TABLE `entry` (`side` varchar(255) NOT NULL);
 
-CREATE TABLE `position` (
-    `date` timestamp(6) NOT NULL,
-    `side` varchar(255) NOT NULL,
-    `size` float NOT NULL
-);
-
 CREATE TABLE `execution_history` (
     `id` bigint unsigned NOT NULL AUTO_INCREMENT,
     `date` datetime(6) NOT NULL,

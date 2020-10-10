@@ -1,7 +1,12 @@
+import datetime
+import time
 import traceback
 
 from lib import bitflyer, message, repository
-from lib.config import Bitflyer
+from lib.config import Anomaly, Bitflyer
+
+ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
+CLOSE_MINUTE = Anomaly.CLOSE_MINUTE.value
 
 bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
                         api_secret=Bitflyer.Api.value.SECRET.value)
@@ -21,7 +26,31 @@ while True:
 
     if latest_side is None \
             or latest_side != side:
-        bitflyer.close()
-        if side != "CLOSE":
-            bitflyer.order(side=side)
-        latest_side = side
+        if side == "CLOSE":
+            bitflyer.close()
+
+            date = datetime.datetime.now()
+            after_sleep_date = date + datetime.timedelta(seconds=180)
+            now_to_sleep_list = \
+                list(range(date.minute, after_sleep_date.minute + 1))
+
+            reaches_entry_minute = ENTRY_MINUTE in now_to_sleep_list
+
+            if reaches_entry_minute:
+                message.warning("sleep reaches entry  minute")
+                latest_side = side
+                continue
+
+            time.sleep(120)
+
+            has_position = bitflyer.close()
+            if has_position:
+                time.sleep(1)
+            else:
+                latest_side = side
+
+        else:  # side is BUY or SELL
+            order_side, order_size = bitflyer.order(side=side)
+            bitflyer.position_validation(order_side=order_side,
+                                         order_size=order_size)
+            latest_side = side
