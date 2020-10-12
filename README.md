@@ -14,14 +14,13 @@ bitflyer-lightning（btcfxjpy）用のビットコイン自動売買botです。
 asset 1,000,000  
 
 **backtest result**：  
-2019-10-01 17:28:00 〜 2020-10-09 02:01:00  
-asset 17,697,142  
-profit 16,697,142  
-pf 1.41  
-wp 56 %  
-trade_cnt 7880  
+2019-10-01 17:40:00 〜 2020-10-12 23:01:00  
+profit 65,476,676  
+pf 1.48  
+wp 57 %  
+trading cnt 7629  
 
-<a href="https://imgur.com/PO6I4zS"><img src="https://i.imgur.com/PO6I4zS.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/uEmPlXo"><img src="https://i.imgur.com/uEmPlXo.png" title="source: imgur.com" /></a>
 
 ---  
 ### 環境  

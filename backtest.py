@@ -8,7 +8,6 @@ asset = 1000000
 
 database = "tradingbot"
 
-
 sql = """
         select
             *
@@ -22,14 +21,15 @@ sql = """
                     bitflyer_btc_ohlc_1M
             ) as b
         WHERE
-            (minute(Date)  = 55
-        or  minute(Date) between 0 and 1
-        or  minute(Date) = 28)
-        # and
-            # Date >= '2020-4-1 00:00:00'
+            (
+                minute(Date) = 55
+            or  minute(Date) between 0 and 1
+            or  minute(Date) = 40
+            )
+            # and Date >= '2020-7-1 00:00:00'
         order by
             Date
-    """
+        """
 historical_Price = repository.read_sql(database=database, sql=sql)
 
 has_buy = False
@@ -44,7 +44,7 @@ for i in range(len(historical_Price)):
         now_Date = now_data["Date"]
         now_Close = now_data["Close"]
 
-        if now_Date.minute == 0:
+        if now_Date.minute == 0 and now_Date.hour != 20:
             past_data = historical_Price.iloc[i - 1]
             past_Date = past_data["Date"]
 
@@ -56,7 +56,7 @@ for i in range(len(historical_Price)):
 
             tD = past_Date + datetime.timedelta(hours=1)
             if tD.hour != now_Date.hour or now_Date.hour != entry_Date.hour or entry_Date.hour != close_Date.hour \
-                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 28:
+                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 40:
                 continue
 
             past_Close = past_data["Close"]
@@ -69,10 +69,8 @@ for i in range(len(historical_Price)):
             amount = asset / entry_Price
 
             if roc < 0:
-                print(entry_Date, "BUY")
                 profit = (amount * close_Price) - asset
             else:
-                print(entry_Date, "SELL")
                 profit = asset - (amount * close_Price)
 
             if profit <= 0:
@@ -123,24 +121,3 @@ fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(list(range(len(asset_flow))), asset_flow)
 plt.show()
-
-
-"""
-strategy(title="Hourly Anomaly", overlay=true, initial_capital=10000,
-         default_qty_type=strategy.percent_of_equity, default_qty_value=100)
-entry_min = 0
-duration = 28
-min = minute(time)
-roc = (close[0] - close[5]) / close[5]
-
-if (min == entry_min)
-    if roc < 0
-        strategy.entry("long", strategy.long)
-    else
-        strategy.entry("short", strategy.short)
-
-if (min == entry_min + duration)
-    strategy.close("long")
-    strategy.close("short")
-
-"""

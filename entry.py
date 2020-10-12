@@ -46,8 +46,13 @@ while True:
     i = len(historical_price) - 1
     latest = historical_price.iloc[i]
     Date = latest["Date"]
+    Hour = Date.hour
     Minute = Date.minute
     Price = latest["Close"]
+
+    can_trading = Hour != 20  # 20時 -> pf:0.65
+    if not can_trading:
+        continue
 
     if Minute == ENTRY_MINUTE and not has_signal:
         i = 0
