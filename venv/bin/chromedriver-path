@@ -1,4 +1,4 @@
-#!/home/yuta-komura/Desktop/dev/amateras/venv/bin/python
+#!/home/yuta-komura/Desktop/dev/bishamon/venv/bin/python
 # EASY-INSTALL-ENTRY-SCRIPT: 'chromedriver-binary==86.0.4240.22.0','console_scripts','chromedriver-path'
 __requires__ = 'chromedriver-binary==86.0.4240.22.0'
 import re

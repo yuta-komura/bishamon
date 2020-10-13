@@ -1,4 +1,4 @@
-#!/home/yuta-komura/Desktop/dev/amateras/venv/bin/python
+#!/home/yuta-komura/Desktop/dev/bishamon/venv/bin/python
 from __future__ import print_function
 import click
 import pickle
