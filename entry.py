@@ -50,7 +50,7 @@ while True:
     Minute = Date.minute
     Price = latest["Close"]
 
-    can_trading = Hour != 20  # 20時 -> pf:0.65
+    can_trading = Hour != 4 or Hour != 5  # 5時 -> pf:0.69, 4時 -> メンテナンス
     if not can_trading:
         continue
 

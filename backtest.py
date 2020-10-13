@@ -4,29 +4,21 @@ import matplotlib.pyplot as plt
 
 from lib import math, repository
 
-asset = 1000000
-
 database = "tradingbot"
+
+asset = 1000000
 
 sql = """
         select
             *
         from
-            (
-                select
-                    FROM_UNIXTIME(Time) as Date,
-                    Open,
-                    Close
-                from
-                    bitflyer_btc_ohlc_1M
-            ) as b
+            bitflyer_btc_ohlc_1M
         WHERE
             (
                 minute(Date) = 55
             or  minute(Date) between 0 and 1
             or  minute(Date) = 40
             )
-            # and Date >= '2020-7-1 00:00:00'
         order by
             Date
         """
@@ -44,7 +36,9 @@ for i in range(len(historical_Price)):
         now_Date = now_data["Date"]
         now_Close = now_data["Close"]
 
-        if now_Date.minute == 0 and now_Date.hour != 20:
+        if now_Date.minute == 0 \
+                and now_Date.hour != 5:
+
             past_data = historical_Price.iloc[i - 1]
             past_Date = past_data["Date"]
 
