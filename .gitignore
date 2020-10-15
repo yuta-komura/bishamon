@@ -2,3 +2,4 @@
 __pycache__/
 
 log/
+insert_historical_data.py
