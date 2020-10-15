@@ -17,7 +17,7 @@ sql = """
             (
                 minute(Date) = 55
             or  minute(Date) between 0 and 1
-            or  minute(Date) = 40
+            or  minute(Date) = 44
             )
         order by
             Date
@@ -37,7 +37,10 @@ for i in range(len(historical_Price)):
         now_Close = now_data["Close"]
 
         if now_Date.minute == 0 \
-                and now_Date.hour != 5:
+                and now_Date.hour not in [4, 5, 18]:
+
+            if (i - 1) < 0:
+                continue
 
             past_data = historical_Price.iloc[i - 1]
             past_Date = past_data["Date"]
@@ -50,7 +53,7 @@ for i in range(len(historical_Price)):
 
             tD = past_Date + datetime.timedelta(hours=1)
             if tD.hour != now_Date.hour or now_Date.hour != entry_Date.hour or entry_Date.hour != close_Date.hour \
-                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 40:
+                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 44:
                 continue
 
             past_Close = past_data["Close"]
@@ -99,7 +102,6 @@ finish_date = historical_Price.iloc[len(historical_Price) - 1]["Date"]
 
 horizontal_line = "-------------------------------------------------"
 print(horizontal_line)
-print("backtest result")
 print(start_date, "〜", finish_date)
 print("asset", math.round_down(asset, 0))
 print("profit", int(sum(profits)))
