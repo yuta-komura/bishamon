@@ -74,7 +74,6 @@ sql = """
                 hour(Date)) as b
         where
             Min = '00'
-            and Date >= '2020-10-01 00:00:00'
         """
 test_dates = repository.read_sql(database=database, sql=sql)
 
@@ -82,8 +81,8 @@ for i in range(len(test_dates)):
     Date = test_dates.iloc[i]["Date"]
 
     result_profit_datas = []
-    for f in range(45, 60):
-        for c in range(25, 46):
+    for f in range(55, 56):
+        for c in range(25, 60):
             fr_Date = get_fr_Date(Date, f)
             to_Date = get_to_Date(Date)
             entry_Date = get_entry_Date(Date)
