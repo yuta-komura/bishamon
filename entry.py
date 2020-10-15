@@ -48,10 +48,9 @@ while True:
     Date = latest["Date"]
     Hour = Date.hour
     Minute = Date.minute
-    Price = latest["Close"]
 
-    can_trading = Hour != 4 or Hour != 5  # 5時 -> pf:0.69, 4時 -> メンテナンス
-    if not can_trading:
+    invalid_trading = Hour in [4, 5]  # 4時 -> メンテナンス, 5時 -> pf:0.69
+    if invalid_trading:
         continue
 
     if Minute == ENTRY_MINUTE and not has_signal:
