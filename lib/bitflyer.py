@@ -119,7 +119,6 @@ class API:
 
                     self.__send_order(side=side, size=size, price=price)
                 else:
-                    message.info("position is validate")
                     return
             except Exception:
                 message.error(traceback.format_exc())

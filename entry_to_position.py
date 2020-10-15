@@ -29,6 +29,8 @@ while True:
         if side == "CLOSE":
             bitflyer.close()
 
+            message.info("close validation")
+
             date = datetime.datetime.now()
             after_sleep_date = date + datetime.timedelta(seconds=180)
             now_to_sleep_list = \
@@ -37,7 +39,7 @@ while True:
             reaches_entry_minute = ENTRY_MINUTE in now_to_sleep_list
 
             if reaches_entry_minute:
-                message.warning("sleep reaches entry  minute")
+                message.warning("sleep reaches entry minute")
                 latest_side = side
                 continue
 
@@ -47,10 +49,17 @@ while True:
             if has_position:
                 time.sleep(1)
             else:
+                message.info("close is validate")
                 latest_side = side
 
         else:  # side is BUY or SELL
             order_side, order_size = bitflyer.order(side=side)
+
+            message.info("position validation")
+
             bitflyer.position_validation(order_side=order_side,
                                          order_size=order_size)
+
+            message.info("position is validate")
+
             latest_side = side
