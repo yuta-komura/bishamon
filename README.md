@@ -57,8 +57,16 @@ class Bitflyer(Enum):
         SECRET = "sdjkalsxc90wdwkksldfdscmcldsa"
 ```
 
+**mpg123インストール**：  
+このシステムでは、loggerのwarningまたはerror出力時に  
+音声が流れるようになっております。  
+```bash
+sudo apt update -y
+sudo apt install -y mpg123
+```
+
 **レバレッジ**：  
-このシステムは、レバレッジ4倍分のポジションサイズをとります。  
+このシステムでは、レバレッジ4倍分のポジションサイズをとります。  
 ポジションサイズの変更は**lib/bitflyer.py**のコンストラクタで設定してください。  
 ```python:bitflyer.py
     def __init__(self, api_key, api_secret):
