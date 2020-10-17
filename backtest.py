@@ -24,10 +24,6 @@ sql = """
         """
 historical_Price = repository.read_sql(database=database, sql=sql)
 
-has_buy = False
-has_sell = False
-downs = []
-downs_list = []
 profits = []
 asset_flow = []
 for i in range(len(historical_Price)):
@@ -70,12 +66,6 @@ for i in range(len(historical_Price)):
             else:
                 profit = asset - (amount * close_Price)
 
-            if profit <= 0:
-                downs.append(profit)
-            else:
-                downs_list.append(sum(downs))
-                downs = []
-
             profits.append(profit)
             asset += profit
             asset_flow.append(asset)
@@ -93,9 +83,12 @@ for i in range(len(profits)):
 pf = None
 if sum(loses) != 0:
     pf = abs(sum(wins) / sum(loses))
-wp = None
+pc = None
 if len(wins) + len(loses) != 0:
-    wp = len(wins) / (len(wins) + len(loses)) * 100
+    pc = len(wins) / (len(wins) + len(loses))
+ic = None
+if pc:
+    ic = (2 * pc) - 1
 
 start_date = historical_Price.iloc[0]["Date"]
 finish_date = historical_Price.iloc[len(historical_Price) - 1]["Date"]
@@ -103,15 +96,14 @@ finish_date = historical_Price.iloc[len(historical_Price) - 1]["Date"]
 horizontal_line = "-------------------------------------------------"
 print(horizontal_line)
 print(start_date, "〜", finish_date)
-print("asset", math.round_down(asset, 0))
 print("profit", int(sum(profits)))
 if pf:
     print("pf", math.round_down(pf, -2))
-if wp:
-    print("wp", math.round_down(wp, 0), "%")
-print("trade_cnt", len(profits))
-if downs_list:
-    print("draw_down", int(min(downs_list)))
+if pc:
+    print("wp", math.round_down(pc * 100, 0), "%")
+if ic:
+    print("ic", math.round_down(ic, -2))
+print("trading cnt", len(profits))
 
 fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)

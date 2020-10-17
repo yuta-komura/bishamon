@@ -31,7 +31,8 @@ for i in range(len(historical_Price)):
         now_Date = now_data["Date"]
         now_Close = now_data["Close"]
 
-        if now_Date.minute == 0:
+        if now_Date.minute == 0 \
+                and now_Date.hour not in [4, 5, 22]:
 
             if (i - 1) < 0:
                 continue
@@ -59,14 +60,14 @@ for i in range(len(historical_Price)):
 
             amount = asset / entry_Price
 
-            if roc < 0:
+            if roc < 0:  # BUY
                 profit = (amount * close_Price) - asset
 
                 profits.append(profit)
                 asset += profit
                 asset_flow.append(asset)
 
-                for j in range(1, 60):
+                for j in range(1, 60):  # SELL
                     try:
                         rema_data = historical_Price.iloc[(i + 2) + j]
                         rema_Date = rema_data["Date"]
@@ -84,14 +85,14 @@ for i in range(len(historical_Price)):
                             break
                     except Exception:
                         pass
-            else:
+            else:  # SELL
                 profit = asset - (amount * close_Price)
 
                 profits.append(profit)
                 asset += profit
                 asset_flow.append(asset)
 
-                for j in range(1, 60):
+                for j in range(1, 60):  # BUY
                     try:
                         rema_data = historical_Price.iloc[(i + 2) + j]
                         rema_Date = rema_data["Date"]
@@ -109,7 +110,6 @@ for i in range(len(historical_Price)):
                             break
                     except Exception:
                         pass
-
     except Exception:
         pass
 
@@ -124,9 +124,12 @@ for i in range(len(profits)):
 pf = None
 if sum(loses) != 0:
     pf = abs(sum(wins) / sum(loses))
-wp = None
+pc = None
 if len(wins) + len(loses) != 0:
-    wp = len(wins) / (len(wins) + len(loses)) * 100
+    pc = len(wins) / (len(wins) + len(loses))
+ic = None
+if pc:
+    ic = (2 * pc) - 1
 
 start_date = historical_Price.iloc[0]["Date"]
 finish_date = historical_Price.iloc[len(historical_Price) - 1]["Date"]
@@ -134,13 +137,14 @@ finish_date = historical_Price.iloc[len(historical_Price) - 1]["Date"]
 horizontal_line = "-------------------------------------------------"
 print(horizontal_line)
 print(start_date, "〜", finish_date)
-print("asset", math.round_down(asset, 0))
 print("profit", int(sum(profits)))
 if pf:
     print("pf", math.round_down(pf, -2))
-if wp:
-    print("wp", math.round_down(wp, 0), "%")
-print("trade_cnt", len(profits))
+if pc:
+    print("wp", math.round_down(pc * 100, 0), "%")
+if ic:
+    print("ic", math.round_down(ic, -2))
+print("trading cnt", len(profits))
 
 fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
