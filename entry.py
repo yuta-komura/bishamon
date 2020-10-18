@@ -49,11 +49,6 @@ while True:
     Hour = Date.hour
     Minute = Date.minute
 
-    """
-    4 時 -> メンテナンス
-    5 時 -> pf:0.87
-    18時 -> pf:0.92
-    """
     invalid_trading = Hour in [4, 5, 18]
     if invalid_trading:
         continue
