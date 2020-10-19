@@ -2,6 +2,3 @@
 __pycache__/
 
 log/
-insert_historical_data.py
-insert_coinapi_key.py
-chromedriver
