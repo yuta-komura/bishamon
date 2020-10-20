@@ -25,7 +25,6 @@ sql = """
 historical_Price = repository.read_sql(database=database, sql=sql)
 
 profits = []
-asset_flow = []
 for i in range(len(historical_Price)):
     try:
         now_data = historical_Price.iloc[i]
@@ -68,9 +67,14 @@ for i in range(len(historical_Price)):
 
             profits.append(profit)
             asset += profit
-            asset_flow.append(asset)
     except Exception:
         pass
+
+# if profits:  # ノイズ除外
+    # c = sorted(profits, reverse=True)[int((len(profits) - 1) * 0.1)]
+    # profits = [i for i in profits if i < c]
+    # c = sorted(profits)[int((len(profits) - 1) * 0.1)]
+    # profits = [i for i in profits if i > c]
 
 wins = []
 loses = []
@@ -105,7 +109,13 @@ if ic:
     print("ic", math.round_down(ic, -2))
 print("trading cnt", len(profits))
 
+ps = []
+p = 0
+for i in range(len(profits)):
+    ps.append(p)
+    p += profits[i]
+
 fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
-ax1.plot(list(range(len(asset_flow))), asset_flow)
+ax1.plot(list(range(len(ps))), ps)
 plt.show()
