@@ -17,7 +17,7 @@ sql = """
             (
                 minute(Date) = 55
             or  minute(Date) between 0 and 1
-            or  minute(Date) = 28
+            or  minute(Date) = 9
             )
         order by
             Date
@@ -48,7 +48,7 @@ for i in range(len(historical_Price)):
 
             tD = past_Date + datetime.timedelta(hours=1)
             if tD.hour != now_Date.hour or now_Date.hour != entry_Date.hour or entry_Date.hour != close_Date.hour \
-                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 28:
+                    or past_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 9:
                 continue
 
             past_Close = past_data["Close"]
