@@ -19,7 +19,6 @@ hyperlink==20.0.1
 idna==2.10
 incremental==17.5.0
 kiwisolver==1.2.0
-liquidtap==1.0.1
 matplotlib==3.3.1
 mccabe==0.6.1
 mplfinance==0.12.7a0
