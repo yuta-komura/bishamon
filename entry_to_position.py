@@ -48,7 +48,7 @@ while True:
             if has_position:
                 time.sleep(1)
             else:
-                message.info("close is validate")
+                message.info("valid close")
                 latest_side = side
 
         else:  # side is BUY or SELL
@@ -59,6 +59,6 @@ while True:
             bitflyer.position_validation(order_side=order_side,
                                          order_size=order_size)
 
-            message.info("position is validate")
+            message.info("valid position")
 
             latest_side = side
