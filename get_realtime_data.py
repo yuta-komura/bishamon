@@ -97,8 +97,8 @@ class bFwebsocket(object):
                     date = date + dt.timedelta(hours=9)
                     side = r["side"]
                     price = r["price"]
-                    size = r["size"]
-                    sql = "insert into execution_history values (null,'{date}','{side}',{price},{size})"\
+                    size = str(r["size"])
+                    sql = "insert into execution_history values (null,'{date}','{side}',{price},'{size}')"\
                         .format(date=date, side=side, price=price, size=size)
                     repository.execute(database=database, sql=sql, log=False)
 
