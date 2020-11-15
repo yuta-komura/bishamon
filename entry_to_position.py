@@ -30,18 +30,6 @@ while True:
 
             message.info("close validation")
 
-            date = datetime.datetime.now()
-            after_sleep_date = date + datetime.timedelta(seconds=180)
-            now_to_sleep_list = \
-                list(range(date.minute, after_sleep_date.minute + 1))
-
-            reaches_entry_minute = ENTRY_MINUTE in now_to_sleep_list
-
-            if reaches_entry_minute:
-                message.warning("sleep reaches entry minute")
-                latest_side = side
-                continue
-
             time.sleep(120)
 
             has_position = bitflyer.close()
