@@ -15,12 +15,12 @@ asset 1,000,000
 
 **backtest result**：  
 2019-10-02 02:25:00 〜 2020-11-15 04:26:00  
-profit 240,991,331  
+profit 256,913,615  
 pf 1.24  
 wp 55 %    
-trading cnt 17922  
+trading cnt 17918  
 
-<a href="https://imgur.com/mbM5fbf"><img src="https://i.imgur.com/mbM5fbf.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/ET80ktN"><img src="https://i.imgur.com/ET80ktN.png" title="source: imgur.com" /></a>
 
 ---  
 ### 環境  

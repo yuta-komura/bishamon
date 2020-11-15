@@ -27,7 +27,7 @@ print(
      "entry_min2",
      32,
      "close_min2",
-     54])
+     55])
 
 asset = 1000000
 
@@ -45,7 +45,6 @@ sql = """
             or  minute(Date) = 26
             or  minute(Date) = 31
             or  minute(Date) = 32
-            or  minute(Date) = 54
             )
         order by
             Date
@@ -91,7 +90,7 @@ for i in range(len(hp)):
 
     add_fr_Date = fr_Date + datetime.timedelta(hours=1)
     if add_fr_Date.hour != to_Date.hour or to_Date.hour != close_Date2.hour \
-            or fr_Date.minute != 55 or entry_Date.minute != 1 or close_Date2.minute != 54:
+            or fr_Date.minute != 55 or entry_Date.minute != 1 or close_Date2.minute != 55:
         continue
 
     fr_Close = fr_data["Close"]
