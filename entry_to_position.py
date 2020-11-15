@@ -28,25 +28,19 @@ while True:
         if side == "CLOSE":
             bitflyer.close()
 
-            message.info("close validation")
-
+            message.info("close retry")
             time.sleep(120)
-
             has_position = bitflyer.close()
-            if has_position:
-                time.sleep(1)
-            else:
-                message.info("valid close")
-                latest_side = side
+            message.info("close retry complete")
+
+            latest_side = side
 
         else:  # side is BUY or SELL
             order_side, order_size = bitflyer.order(side=side)
 
-            message.info("position validation")
-
+            message.info("position retry")
             bitflyer.position_validation(order_side=order_side,
                                          order_size=order_size)
-
-            message.info("valid position")
+            message.info("position retry complete")
 
             latest_side = side
