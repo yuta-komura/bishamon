@@ -37,7 +37,7 @@ bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
 DATABASE = "tradingbot"
 
 Minute = None
-has_signal = False
+has_contract = False
 while True:
     historical_price = get_historical_price()
     if historical_price is None:
@@ -49,11 +49,11 @@ while True:
     Hour = Date.hour
     Minute = Date.minute
 
-    invalid_trading = Hour in [4, 5, 18]
-    if invalid_trading:
+    mentainance_hour = Hour == 4
+    if mentainance_hour:
         continue
 
-    if Minute == ENTRY_MINUTE and not has_signal:
+    if Minute in ENTRY_MINUTE and not has_contract:
         i = 0
         fr = historical_price.iloc[i]
         fr_Close = fr["Close"]
@@ -69,9 +69,9 @@ while True:
         else:
             save_entry(side="SELL")
 
-        has_signal = True
+        has_contract = True
 
-    if Minute == CLOSE_MINUTE and has_signal:
+    if Minute in CLOSE_MINUTE and has_contract:
         save_entry(side="CLOSE")
 
-        has_signal = False
+        has_contract = False
