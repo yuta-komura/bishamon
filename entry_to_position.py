@@ -2,9 +2,7 @@ import time
 import traceback
 
 from lib import bitflyer, message, repository
-from lib.config import Anomaly, Bitflyer
-
-ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
+from lib.config import Bitflyer
 
 bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
                         api_secret=Bitflyer.Api.value.SECRET.value)
