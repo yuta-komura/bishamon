@@ -25,8 +25,9 @@ while True:
         if side == "CLOSE":
             bitflyer.close()
 
-            message.info("close retry")
             time.sleep(120)
+
+            message.info("close retry")
             has_position = bitflyer.close()
             message.info("close retry complete")
 
