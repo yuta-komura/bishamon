@@ -19,5 +19,3 @@ CREATE TABLE `ticker` (
     `best_bid` int unsigned NOT NULL,
     `best_ask` int unsigned NOT NULL
 );
-
-commit;
