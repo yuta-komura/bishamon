@@ -377,10 +377,12 @@ class API:
             """.format(limit=limit)
 
         historical_price = repository.read_sql(database=self.DATABASE, sql=sql)
-        first_Date = historical_price.loc[0]["Date"]
-        sql = "delete from execution_history where date < '{first_Date}'"\
-            .format(first_Date=first_Date)
-        repository.execute(database=self.DATABASE, sql=sql, write=False)
+
+        if not historical_price.empty:
+            first_Date = historical_price.loc[0]["Date"]
+            sql = "delete from execution_history where date < '{first_Date}'"\
+                .format(first_Date=first_Date)
+            repository.execute(database=self.DATABASE, sql=sql, write=False)
         return historical_price
 
     def __ticker(self):
