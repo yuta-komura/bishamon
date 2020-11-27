@@ -51,6 +51,8 @@ while True:
     if latest_side is None \
             or latest_side != side:
         if side == "CLOSE":
+            latest_side = side
+
             bitflyer.close()
 
             if retry_sleep(secs=120, side=side):
@@ -58,14 +60,12 @@ while True:
                 bitflyer.close()
                 message.info("close retry complete")
 
-                latest_side = side
+            if retry_sleep(secs=120, side=side):
+                message.info("close retry")
+                bitflyer.close()
+                message.info("close retry complete")
 
         else:  # side is BUY or SELL
+            latest_side = side
+
             bitflyer.order(side=side)
-
-            if retry_sleep(secs=120, side=side):
-                message.info("order retry")
-                bitflyer.order(side=side)
-                message.info("order retry complete")
-
-                latest_side = side

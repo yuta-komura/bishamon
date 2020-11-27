@@ -10,25 +10,6 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-print("--------------------------------------------")
-print(
-    ["fr_min1",
-     55,
-     "to_min1",
-     0,
-     "entry_min1",
-     1,
-     "close_min1",
-     25,
-     "fr_min2",
-     26,
-     "to_min2",
-     31,
-     "entry_min2",
-     32,
-     "close_min2",
-     55])
-
 asset = 1000000
 
 sql = """
@@ -41,10 +22,7 @@ sql = """
                 minute(Date) = 55
             or  minute(Date) = 0
             or  minute(Date) = 1
-            or  minute(Date) = 25
-            or  minute(Date) = 26
-            or  minute(Date) = 31
-            or  minute(Date) = 32
+            or  minute(Date) = 13
             )
         order by
             Date
@@ -62,7 +40,7 @@ for i in range(len(hp)):
         to_Date.hour in [4] \
         or to_Date.minute != 0 \
         or i - 1 < 0 \
-        or i + 6 > len(hp) - 1
+        or i + 2 > len(hp) - 1
 
     if invalid_trading:
         continue
@@ -76,21 +54,9 @@ for i in range(len(hp)):
     close_data = hp.iloc[i + 2]
     close_Date = close_data["Date"]
 
-    fr_data2 = hp.iloc[i + 3]
-    fr_Date2 = fr_data2["Date"]
-
-    to_data2 = hp.iloc[i + 4]
-    to_Date2 = to_data2["Date"]
-
-    entry_data2 = hp.iloc[i + 5]
-    entry_Date2 = entry_data2["Date"]
-
-    close_data2 = hp.iloc[i + 6]
-    close_Date2 = close_data2["Date"]
-
     add_fr_Date = fr_Date + datetime.timedelta(hours=1)
-    if add_fr_Date.hour != to_Date.hour or to_Date.hour != close_Date2.hour \
-            or fr_Date.minute != 55 or entry_Date.minute != 1 or close_Date2.minute != 55:
+    if add_fr_Date.hour != to_Date.hour or to_Date.hour != close_Date.hour \
+            or fr_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 13:
         continue
 
     fr_Close = fr_data["Close"]
@@ -104,21 +70,6 @@ for i in range(len(hp)):
         profit = (amount * close_data["Open"]) - asset
     else:
         profit = asset - (amount * close_data["Open"])
-
-    profits.append(profit)
-    asset += profit
-
-    fr_Close = fr_data2["Close"]
-    to_Close = to_data2["Close"]
-
-    roc = (to_Close - fr_Close) / fr_Close
-
-    amount = asset / entry_data2["Open"]
-
-    if roc < 0:
-        profit = (amount * close_data2["Open"]) - asset
-    else:
-        profit = asset - (amount * close_data2["Open"])
 
     profits.append(profit)
     asset += profit
