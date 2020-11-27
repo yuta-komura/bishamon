@@ -15,12 +15,12 @@ asset 1,000,000
 
 **backtest result**：  
 2019-11-27 00:00:00 〜 2020-11-27 13:01:00  
-profit 32,027,575  
-pf 1.52  
+profit 28,835,506  
+pf 1.6  
 wp 57 %  
-trading cnt 8006  
+trading cnt 6610  
 
-<a href="https://imgur.com/HcmQton"><img src="https://i.imgur.com/HcmQton.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/zHiYDsw"><img src="https://i.imgur.com/zHiYDsw.png" title="source: imgur.com" /></a>
 
 ---  
 ### 環境  

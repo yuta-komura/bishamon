@@ -3,7 +3,7 @@ import traceback
 import pandas as pd
 
 from lib import bitflyer, message, repository
-from lib.config import Anomaly, Bitflyer, HistoricalPrice
+from lib.config import Anomaly, Bitflyer, HistoricalPrice, Trading
 
 
 def get_historical_price() -> pd.DataFrame or None:
@@ -31,6 +31,8 @@ TIME_FRAME = HistoricalPrice.TIME_FRAME.value
 CHANNEL_WIDTH = HistoricalPrice.CHANNEL_WIDTH.value
 CHANNEL_BAR_NUM = TIME_FRAME * CHANNEL_WIDTH
 
+MENTAINANCE_HOUR = Trading.MENTAINANCE_HOUR.value
+
 bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
                         api_secret=Bitflyer.Api.value.SECRET.value)
 
@@ -39,27 +41,26 @@ DATABASE = "tradingbot"
 Minute = None
 has_contract = False
 while True:
-    historical_price = get_historical_price()
-    if historical_price is None:
+    hp = get_historical_price()
+    if hp is None:
         continue
 
-    i = len(historical_price) - 1
-    latest = historical_price.iloc[i]
+    i = len(hp) - 1
+    latest = hp.iloc[i]
     Date = latest["Date"]
     Hour = Date.hour
     Minute = Date.minute
 
-    mentainance_hour = Hour == 4
-    if mentainance_hour:
+    if Hour in MENTAINANCE_HOUR:
         continue
 
     if Minute in ENTRY_MINUTE and not has_contract:
         i = 0
-        fr = historical_price.iloc[i]
+        fr = hp.iloc[i]
         fr_Close = fr["Close"]
 
-        i = len(historical_price) - 2
-        to = historical_price.iloc[i]
+        i = len(hp) - 2
+        to = hp.iloc[i]
         to_Close = to["Close"]
 
         roc = (to_Close - fr_Close) / fr_Close
