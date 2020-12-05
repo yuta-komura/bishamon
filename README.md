@@ -20,7 +20,11 @@ pf 1.6
 wp 57 %  
 trading cnt 6610  
 
+pnl curve  
 <a href="https://imgur.com/zHiYDsw"><img src="https://i.imgur.com/zHiYDsw.png" title="source: imgur.com" /></a>
+entry timing  
+<a href="https://imgur.com/fygENTI"><img src="https://i.imgur.com/fygENTI.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/gGBiy34"><img src="https://i.imgur.com/gGBiy34.png" title="source: imgur.com" /></a>
 
 ---  
 ### 環境  
