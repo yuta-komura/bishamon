@@ -32,26 +32,32 @@ def retry_sleep(secs: int, side):
     return True
 
 
-bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
-                        api_secret=Bitflyer.Api.value.SECRET.value)
-
-DATABASE = "tradingbot"
-latest_side = None
-while True:
+def get_side():
     try:
         sql = "select * from entry"
         entry = repository.read_sql(database=DATABASE, sql=sql)
         if entry.empty:
-            continue
-        side = entry.at[0, "side"]
+            return None
+        else:
+            return entry.at[0, "side"]
     except Exception:
         message.error(traceback.format_exc())
+        return None
+
+
+bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
+                        api_secret=Bitflyer.Api.value.SECRET.value)
+
+DATABASE = "tradingbot"
+
+latest_side = None
+while True:
+    side = get_side()
+    if side is None:
         continue
 
-    if latest_side is None \
-            or latest_side != side:
+    if side != latest_side:
         if side == "CLOSE":
-            latest_side = side
 
             bitflyer.close()
 
@@ -66,6 +72,6 @@ while True:
                 message.info("close retry complete")
 
         else:  # side is BUY or SELL
-            latest_side = side
-
             bitflyer.order(side=side)
+
+        latest_side = side

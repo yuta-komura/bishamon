@@ -11,7 +11,7 @@ from threading import Thread
 
 import websocket
 
-from lib import repository, message
+from lib import repository
 from lib.config import Bitflyer
 
 # -------------------------------------
@@ -20,8 +20,7 @@ secret = Bitflyer.Api.value.SECRET.value
 
 end_point = 'wss://ws.lightstream.bitflyer.com/json-rpc'
 
-public_channels = ['lightning_executions_FX_BTC_JPY',
-                   'lightning_ticker_FX_BTC_JPY']
+public_channels = ['lightning_executions_FX_BTC_JPY']
 private_channels = []
 database = "tradingbot"
 # -------------------------------------
@@ -72,7 +71,6 @@ class bFwebsocket(object):
         def on_message(ws, message):
             messages = json.loads(message)
 
-            # auth レスポンスの処理
             if 'id' in messages and messages['id'] == self._JSONRPC_ID_AUTH:
                 if 'error' in messages:
                     print('auth error: {}'.format(messages["error"]))
@@ -102,19 +100,6 @@ class bFwebsocket(object):
                         .format(date=date, side=side, price=price, size=size)
                     repository.execute(database=database, sql=sql, log=False)
 
-            if channel == "lightning_ticker_FX_BTC_JPY":
-                date = recept_data["timestamp"][:26]
-                date = date.replace("T", " ").replace("Z", "")
-                date = \
-                    dtdt.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
-                date = date + dt.timedelta(hours=9)
-                best_bid = recept_data["best_bid"]
-                best_ask = recept_data["best_ask"]
-
-                sql = "update ticker set date='{date}',best_bid={best_bid},best_ask={best_ask}"\
-                    .format(date=date, best_bid=best_bid, best_ask=best_ask)
-                repository.execute(database=database, sql=sql, log=False)
-
         def auth(ws):
             now = int(time.time())
             nonce = token_hex(16)
@@ -140,17 +125,7 @@ class bFwebsocket(object):
         websocketThread.start()
 
 
-def initialize():
-    sql = "select * from ticker"
-    ticker = repository.read_sql(database=database, sql=sql)
-    if ticker.empty:
-        message.info("initialize ticker")
-        sql = "insert into ticker values (now(),0,0)"
-        repository.execute(database=database, sql=sql, write=False)
-
-
 if __name__ == '__main__':
-    initialize()
     signal.signal(signal.SIGINT, quit_loop)
     ws = bFwebsocket(end_point, public_channels, private_channels, key, secret)
     ws.startWebsocket()

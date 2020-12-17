@@ -1,18 +1,60 @@
 import traceback
 
-import pandas as pd
-
 from lib import bitflyer, message, repository
 from lib.config import Anomaly, Bitflyer, HistoricalPrice, Trading
 
 
-def get_historical_price() -> pd.DataFrame or None:
+def get_historical_price():
     try:
         limit = CHANNEL_BAR_NUM + 1
-        historical_price = bitflyer.get_historical_price(limit=limit)
-        if len(historical_price) != limit:
+
+        sql = """
+                select
+                    cast(Time as datetime) as Date,
+                    Price
+                from
+                    (
+                        select
+                            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as Time,
+                            cl.price as Price
+                        from
+                            (
+                                select
+                                    min(id) as open_id,
+                                    max(id) as close_id
+                                from
+                                    execution_history
+                                group by
+                                    year(date),
+                                    month(date),
+                                    day(date),
+                                    hour(date),
+                                    minute(date)
+                                order by
+                                    max(date) desc
+                                limit {limit}
+                            ) ba
+                            inner join
+                                execution_history op
+                            on  op.id = ba.open_id
+                            inner join
+                                execution_history cl
+                            on  cl.id = ba.close_id
+                    ) as ohlc
+                order by
+                    Date
+                """.format(limit=limit)
+
+        hp = repository.read_sql(database=DATABASE, sql=sql)
+
+        if len(hp) == limit:
+            first_Date = hp.loc[0]["Date"]
+            sql = "delete from execution_history where date < '{first_Date}'"\
+                .format(first_Date=first_Date)
+            repository.execute(database=DATABASE, sql=sql, write=False)
+            return hp
+        else:
             return None
-        return historical_price
     except Exception:
         message.error(traceback.format_exc())
         return None
@@ -57,15 +99,13 @@ while True:
     if Minute in ENTRY_MINUTE and not has_contract:
         i = 0
         fr = hp.iloc[i]
-        fr_Close = fr["Close"]
+        fr_Price = fr["Price"]
 
         i = len(hp) - 2
         to = hp.iloc[i]
-        to_Close = to["Close"]
+        to_Price = to["Price"]
 
-        roc = (to_Close - fr_Close) / fr_Close
-
-        if roc < 0:
+        if (to_Price - fr_Price) < 0:
             save_entry(side="BUY")
         else:
             save_entry(side="SELL")

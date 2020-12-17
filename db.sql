@@ -11,11 +11,5 @@ CREATE TABLE `execution_history` (
     `price` int unsigned NOT NULL,
     `size` decimal(65, 30) unsigned NOT NULL,
     PRIMARY KEY (`id`),
-    KEY `index_execution_history_1` (`date`)
-);
-
-CREATE TABLE `ticker` (
-    `date` timestamp NOT NULL,
-    `best_bid` int unsigned NOT NULL,
-    `best_ask` int unsigned NOT NULL
+    KEY `execution_history` (`date`)
 );
