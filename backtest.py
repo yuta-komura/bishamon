@@ -24,7 +24,7 @@ sql = """
             or  minute(Date) = 1
             or  minute(Date) = 13
             )
-            and Date >= '2019-11-27 00:00:00'
+        and Date between '2019-11-27 00:00:00' and '2020-11-27 00:00:00'
         order by
             Date
         """
@@ -38,7 +38,7 @@ for i in range(len(hp)):
     to_Date = to_data["Date"]
 
     invalid_trading = \
-        to_Date.hour in [4, 5, 6, 13, 14] \
+        to_Date.hour in [4] \
         or to_Date.minute != 0 \
         or i - 1 < 0 \
         or i + 2 > len(hp) - 1
