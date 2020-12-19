@@ -14,7 +14,6 @@ cryptography==3.1.1
 cycler==0.10.0
 dateparser==0.7.6
 ffmpeg==1.4
-flake8==3.8.3
 hyperlink==20.0.1
 idna==2.10
 incremental==17.5.0
