@@ -11,7 +11,7 @@ class API:
     def __init__(self, api_key, api_secret):
         self.api = pybitflyer.API(api_key=api_key, api_secret=api_secret)
         self.PRODUCT_CODE = "FX_BTC_JPY"
-        self.LEVERAGE = 4
+        self.LEVERAGE = 2
         self.DATABASE = "tradingbot"
 
     def order(self, side):
@@ -195,4 +195,4 @@ class API:
             else:
                 return False
         except Exception:
-            message.error(traceback.format_exc())
+            return False

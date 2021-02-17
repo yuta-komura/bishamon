@@ -1,5 +1,4 @@
 import time
-import traceback
 
 from lib import bitflyer, message, repository
 from lib.config import Bitflyer
@@ -20,7 +19,7 @@ def has_changed_side(side):
         else:
             return False
     except Exception:
-        message.error(traceback.format_exc())
+        return False
 
 
 def retry_sleep(secs: int, side):
@@ -41,7 +40,6 @@ def get_side():
         else:
             return entry.at[0, "side"]
     except Exception:
-        message.error(traceback.format_exc())
         return None
 
 
@@ -61,15 +59,21 @@ while True:
 
             bitflyer.close()
 
-            if retry_sleep(secs=120, side=side):
-                message.info("close retry")
-                bitflyer.close()
-                message.info("close retry complete")
+            for i in range(10):
+                if retry_sleep(secs=10, side=side):
+                    message.info("close retry")
+                    bitflyer.close()
+                    message.info("close retry complete")
+                else:
+                    break
 
-            if retry_sleep(secs=120, side=side):
-                message.info("close retry")
-                bitflyer.close()
-                message.info("close retry complete")
+            for i in range(60):
+                if retry_sleep(secs=30, side=side):
+                    message.info("close retry")
+                    bitflyer.close()
+                    message.info("close retry complete")
+                else:
+                    break
 
         else:  # side is BUY or SELL
             bitflyer.order(side=side)

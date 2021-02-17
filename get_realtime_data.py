@@ -88,17 +88,22 @@ class bFwebsocket(object):
 
             if channel == "lightning_executions_FX_BTC_JPY":
                 for r in recept_data:
-                    date = r["exec_date"][:26]
-                    date = date.replace("T", " ").replace("Z", "")
-                    date = \
-                        dtdt.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
-                    date = date + dt.timedelta(hours=9)
-                    side = r["side"]
-                    price = r["price"]
-                    size = str(r["size"])
-                    sql = "insert into execution_history values (null,'{date}','{side}',{price},'{size}')"\
-                        .format(date=date, side=side, price=price, size=size)
-                    repository.execute(database=database, sql=sql, log=False)
+                    try:
+                        date = r["exec_date"][:26]
+                        date = date.replace("T", " ").replace("Z", "")
+                        date = \
+                            dtdt.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
+                        date = date + dt.timedelta(hours=9)
+                        side = r["side"]
+                        price = r["price"]
+                        size = str(r["size"])
+                        sql = "insert into execution_history values (null,'{date}','{side}',{price},'{size}')"\
+                            .format(date=date, side=side, price=price, size=size)
+                        repository.execute(database=database,
+                                           sql=sql,
+                                           log=False)
+                    except Exception:
+                        pass
 
         def auth(ws):
             now = int(time.time())

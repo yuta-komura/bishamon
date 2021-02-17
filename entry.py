@@ -1,5 +1,3 @@
-import traceback
-
 from lib import bitflyer, message, repository
 from lib.config import Anomaly, Bitflyer, HistoricalPrice, Trading
 
@@ -56,14 +54,18 @@ def get_historical_price():
         else:
             return None
     except Exception:
-        message.error(traceback.format_exc())
         return None
 
 
 def save_entry(side):
     message.info(side, "entry")
-    sql = "update entry set side='{side}'".format(side=side)
-    repository.execute(database=DATABASE, sql=sql, write=False)
+    while True:
+        try:
+            sql = "update entry set side='{side}'".format(side=side)
+            repository.execute(database=DATABASE, sql=sql, write=False)
+            return
+        except Exception:
+            pass
 
 
 ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
