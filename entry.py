@@ -2,6 +2,15 @@ from lib import bitflyer, message, repository
 from lib.config import Anomaly, Bitflyer, HistoricalPrice, Trading
 
 
+def can_trading(side):
+    sfd_ratio = bitflyer.get_sfd_ratio()
+    if (side == "BUY" and sfd_ratio >= 5) or (
+            side == "SELL" and sfd_ratio <= -5):
+        return False
+    else:
+        return True
+
+
 def get_historical_price():
     try:
         limit = CHANNEL_BAR_NUM + 1
@@ -108,11 +117,13 @@ while True:
         to_Price = to["Price"]
 
         if (to_Price - fr_Price) < 0:
-            save_entry(side="BUY")
+            side = "BUY"
         else:
-            save_entry(side="SELL")
+            side = "SELL"
 
-        has_contract = True
+        if can_trading(side=side):
+            save_entry(side=side)
+            has_contract = True
 
     if Minute in CLOSE_MINUTE and has_contract:
         save_entry(side="CLOSE")

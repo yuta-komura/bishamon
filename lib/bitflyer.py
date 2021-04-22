@@ -124,7 +124,7 @@ class API:
                 time.sleep(3)
 
     def __get_order_price(self, side):
-        ticker = self.__ticker()
+        ticker = self.__get_best_price()
 
         """
         order book
@@ -164,11 +164,11 @@ class API:
                 message.error("positions", positions)
                 time.sleep(3)
 
-    def __ticker(self):
+    def __get_best_price(self):
         ticker = None
         while True:
             try:
-                ticker = self.api.ticker(product_code=self.PRODUCT_CODE)
+                ticker = self.__get_ticker()
                 best_ask = int(ticker["best_ask"])
                 best_bid = int(ticker["best_bid"])
                 return {"best_ask": best_ask, "best_bid": best_bid}
@@ -176,6 +176,26 @@ class API:
                 message.error(traceback.format_exc())
                 message.error("ticker", ticker)
                 time.sleep(3)
+
+    def __get_ticker(self):
+        try:
+            return self.api.ticker(product_code=self.PRODUCT_CODE)
+        except Exception:
+            message.error(traceback.format_exc())
+            time.sleep(3)
+
+    def get_sfd_ratio(self):
+        try:
+            btcjpy_ltp = self.api.ticker(product_code="BTC_JPY")["ltp"]
+            fxbtcjpy_ltp = self.__get_ticker()["ltp"]
+            sfd_ratio = (fxbtcjpy_ltp / btcjpy_ltp - 1) * 100
+            sfd_ratio = float(math.round_down(sfd_ratio, -2))
+            return sfd_ratio
+        except Exception:
+            message.error(traceback.format_exc())
+            message.error("btcjpy_ltp", btcjpy_ltp)
+            message.error("fxbtcjpy_ltp", fxbtcjpy_ltp)
+            time.sleep(3)
 
     def __cancelallchildorders(self):
         self.api.cancelallchildorders(product_code=self.PRODUCT_CODE)
