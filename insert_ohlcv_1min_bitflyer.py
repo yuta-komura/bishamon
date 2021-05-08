@@ -1,4 +1,5 @@
 import datetime
+from pprint import pprint
 
 import pytz
 import requests
@@ -48,7 +49,7 @@ while True:
     params = {
         "period_id": period_id,
         "time_start": time_start,
-        "limit": 100000}
+        "limit": 10000}
 
     headers = {"X-CoinAPI-Key": keys[0]}
 
@@ -65,8 +66,9 @@ while True:
             sql = f"insert into {insert_table} values('{date}',{open},{high},{low},{close},'{volume}')"
             repository.execute(database=database, sql=sql, log=False)
     except Exception:
-        if data.key.size:
+        pprint(keys[0], response)
+        if len(keys) - 1 <= 0:
+            break
+        else:
             del keys[0]
             continue
-        else:
-            break
