@@ -10,70 +10,92 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-asset = 1000000
+do_deposit = True
 
-sql = """
+analysis_from_time = 55
+analysis_to_time = 0
+entry_time = 1
+close_time = 18
+
+print("parameter : ")
+print(f"analysis_from_time {analysis_from_time}")
+print(f"analysis_to_time {analysis_to_time}")
+print(f"entry_time {entry_time}")
+print(f"close_time {close_time}")
+
+insert_asset = 50000
+initial_profit = insert_asset
+leverage = 2
+asset = initial_profit
+
+sql = f"""
         select
-            *
+            perp.date,
+            perp.open as perp_price,
+            (perp.open / spot.open - 1) * 100 as sfd
         from
-            bitflyer_btc_ohlc_1M
+            ohlcv_1min_bitflyer_perp perp
+            inner join
+                ohlcv_1min_bitflyer_spot spot
+            on  perp.date = spot.date
         where
-            (
-                minute(Date) = 55
-            or  minute(Date) = 0
-            or  minute(Date) = 1
-            or  minute(Date) = 13
-            )
-        and Date between '2019-11-27 00:00:00' and '2020-11-27 00:00:00'
+            (minute(perp.date) = {analysis_from_time}
+            or minute(perp.date) = {analysis_to_time}
+            or minute(perp.date) = {entry_time}
+            or minute(perp.date) = {close_time})
+            # and perp.date between '2021-04-15 00:00:00' and '2099-04-30 00:00:00'
         order by
-            Date
+            date
         """
-hp = repository.read_sql(database=database, sql=sql)
+data_prices = repository.read_sql(database=database, sql=sql)
 
-buy_rsis = []
-sell_rsis = []
+print(data_prices)
+
 profits = []
-for i in range(len(hp)):
-    to_data = hp.iloc[i]
-    to_Date = to_data["Date"]
+asset_flow = []
+for i in range(len(data_prices)):
+    if i - 1 >= 0:
+        before_data_month = data_prices.iloc[i - 1]["date"].month
+        now_data_month = data_prices.iloc[i]["date"].month
+        if do_deposit and before_data_month != now_data_month:
+            asset += insert_asset
 
-    invalid_trading = \
-        to_Date.hour in [4] \
-        or to_Date.minute != 0 \
-        or i - 1 < 0 \
-        or i + 2 > len(hp) - 1
+        data_price = data_prices.iloc[i]
+        if data_price["date"].hour != 4 and data_price["date"].minute == 0:
 
-    if invalid_trading:
-        continue
+            if i + 2 <= len(data_prices) - 1:
+                analysis_from = data_prices.iloc[i - 1]
+                analysis_to = data_price
+                data_entry = data_prices.iloc[i + 1]
+                data_close = data_prices.iloc[i + 2]
 
-    fr_data = hp.iloc[i - 1]
-    fr_Date = fr_data["Date"]
+                if (analysis_from["date"] + datetime.timedelta(hours=1)).hour == analysis_to["date"].hour \
+                        and analysis_to["date"].hour == data_entry["date"].hour \
+                        and data_entry["date"].hour == data_close["date"].hour:
+                    if analysis_from["date"].minute == analysis_from_time \
+                            and data_entry["date"].minute == entry_time \
+                            and data_close["date"].minute == close_time:
+                        to_price = analysis_to["perp_price"]
+                        fr_price = analysis_from["perp_price"]
+                        entry_price = data_entry["perp_price"]
+                        close_price = data_close["perp_price"]
 
-    entry_data = hp.iloc[i + 1]
-    entry_Date = entry_data["Date"]
+                        entry_sfd = data_entry["sfd"]
 
-    close_data = hp.iloc[i + 2]
-    close_Date = close_data["Date"]
+                        amount = asset / entry_price
 
-    add_fr_Date = fr_Date + datetime.timedelta(hours=1)
-    if add_fr_Date.hour != to_Date.hour or to_Date.hour != close_Date.hour \
-            or fr_Date.minute != 55 or entry_Date.minute != 1 or close_Date.minute != 13:
-        continue
+                        if (to_price - fr_price) < 0:
+                            if entry_sfd >= 5:
+                                continue
+                            profit = (amount * close_price) - asset
+                        else:
+                            if entry_sfd <= -5:
+                                continue
+                            profit = asset - (amount * close_price)
 
-    fr_Close = fr_data["Close"]
-    to_Close = to_data["Close"]
-
-    roc = (to_Close - fr_Close) / fr_Close
-
-    amount = asset / entry_data["Open"]
-
-    if roc < 0:
-        profit = (amount * close_data["Open"]) - asset
-    else:
-        profit = asset - (amount * close_data["Open"])
-
-    profits.append(profit)
-    asset += profit
+                        profits.append(profit)
+                        asset += profit
+                        asset_flow.append(asset)
 
 wins = []
 loses = []
@@ -93,8 +115,8 @@ ic = None
 if pc:
     ic = (2 * pc) - 1
 
-start_date = hp.iloc[0]["Date"]
-finish_date = hp.iloc[len(hp) - 1]["Date"]
+start_date = data_prices.iloc[0]["date"]
+finish_date = data_prices.iloc[len(data_prices) - 1]["date"]
 
 print(start_date, "〜", finish_date)
 print("profit", int(sum(profits)))
@@ -104,15 +126,10 @@ if pc:
     print("wp", math.round_down(pc * 100, 0), "%")
 if ic:
     print("ic", math.round_down(ic, -2))
-print("trading cnt", len(profits))
 
-ps = []
-p = 0
-for i in range(len(profits)):
-    ps.append(p)
-    p += profits[i]
+print("trading cnt", len(profits))
 
 fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
-ax1.plot(list(range(len(ps))), ps)
-plt.show()
+ax1.plot(list(range(len(asset_flow))), asset_flow)
+fig.savefig("backtest_result.png")
