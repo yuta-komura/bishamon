@@ -1,4 +1,5 @@
 import datetime
+import sys
 from pprint import pprint
 
 import pytz
@@ -32,12 +33,13 @@ if data.empty:
 
 keys = list(data.key)
 
+before_time_start = None
 while True:
 
     sql = f"select date from {insert_table} order by date desc limit 1"
     data = repository.read_sql(database=database, sql=sql)
     if data.empty:
-        time_start = "2020-04-30T15:00:00"
+        time_start = "2000-04-30T15:00:00"
     else:
         latest_date = data.iloc[0]["date"].tz_localize("Asia/Tokyo")
         latest_date = latest_date.astimezone(pytz.utc)
@@ -45,6 +47,12 @@ while True:
         time_start_split = str(time_start).split()
         time_start = time_start_split[0] + \
             "T" + time_start_split[1].split("+")[0]
+
+        if before_time_start == time_start:
+            print("complete")
+            sys.exit()
+        else:
+            print("data insert")
 
     params = {
         "period_id": period_id,
@@ -65,10 +73,15 @@ while True:
             volume = str(data["volume_traded"])
             sql = f"insert into {insert_table} values('{date}',{open},{high},{low},{close},'{volume}')"
             repository.execute(database=database, sql=sql, log=False)
+
     except Exception:
-        pprint(keys[0], response)
+        pprint(keys[0])
+        pprint(response)
         if len(keys) - 1 <= 0:
-            break
+            print("complete")
+            sys.exit()
         else:
             del keys[0]
             continue
+
+    before_time_start = time_start
