@@ -82,16 +82,18 @@ for i in range(len(data_prices)):
 
                         entry_sfd = data_entry["sfd"]
 
-                        amount = asset / entry_price
+                        amount = (asset * leverage) / entry_price
 
                         if (to_price - fr_price) < 0:
                             if entry_sfd >= 5:
                                 continue
-                            profit = (amount * close_price) - asset
+                            profit = (amount * close_price) - \
+                                (asset * leverage)
                         else:
                             if entry_sfd <= -5:
                                 continue
-                            profit = asset - (amount * close_price)
+                            profit = (asset * leverage) - \
+                                (amount * close_price)
 
                         profits.append(profit)
                         asset += profit
@@ -133,3 +135,4 @@ fig = plt.figure(figsize=(48, 24), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(list(range(len(asset_flow))), asset_flow)
 fig.savefig("backtest_result.png")
+plt.show()
