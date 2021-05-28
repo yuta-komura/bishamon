@@ -131,7 +131,7 @@ if ic:
 
 print("trading cnt", len(profits))
 
-fig = plt.figure(figsize=(48, 24), dpi=50)
+fig = plt.figure(figsize=(24, 12), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(list(range(len(asset_flow))), asset_flow)
 fig.savefig("backtest_result.png")

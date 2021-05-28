@@ -1,7 +1,5 @@
 import datetime
 
-import matplotlib.pyplot as plt
-
 from lib import math, message
 from lib import pandas_option as pd_op
 from lib import repository
@@ -150,10 +148,3 @@ for i in range(30, 60):
     result_data = result_data.replace(",", "")
 
     message.info(result_data)
-
-    # fig = plt.figure(figsize=(48, 24), dpi=50)
-    # ax1 = fig.add_subplot(1, 1, 1)
-    # ax1.plot(list(range(len(asset_flow))), asset_flow)
-    # fig.savefig("backtest_result.png")
-
-    # break
