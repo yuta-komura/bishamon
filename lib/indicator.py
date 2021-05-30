@@ -2,10 +2,10 @@ import pandas as pd
 
 
 def add_rsi(df: pd.DataFrame, value: int) -> pd.DataFrame:
-    Price_diff_df = df["Price"].diff()
+    price_diff_df = df["price"].diff()
 
-    up = Price_diff_df.copy()
-    down = Price_diff_df.copy()
+    up = price_diff_df.copy()
+    down = price_diff_df.copy()
     up[up < 0] = 0
     down[down > 0] = 0
 
@@ -17,14 +17,14 @@ def add_rsi(df: pd.DataFrame, value: int) -> pd.DataFrame:
 
 
 def add_sma(df: pd.DataFrame, value: int) -> pd.DataFrame:
-    Price_df = df["Price"]
-    df["sma{value}".format(value=value)] = Price_df.rolling(value).mean()
+    price_df = df["price"]
+    df["sma{value}".format(value=value)] = price_df.rolling(value).mean()
     return df
 
 
 def add_ema(df: pd.DataFrame, value: int) -> pd.DataFrame:
-    Price_df = df["Price"]
-    sma = Price_df.rolling(value).mean()[:value]
+    price_df = df["price"]
+    sma = price_df.rolling(value).mean()[:value]
     df["ema{value}".format(value=value)] = \
-        pd.concat([sma, Price_df[value:]]).ewm(span=value, adjust=False).mean()
+        pd.concat([sma, price_df[value:]]).ewm(span=value, adjust=False).mean()
     return df
