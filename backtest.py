@@ -12,7 +12,7 @@ pd_op.display_round_down()
 
 do_deposit = True
 
-analysis_from_time = 55
+analysis_from_time = 51
 analysis_to_time = 0
 entry_time = 1
 close_time = 18
@@ -61,14 +61,15 @@ for i in range(len(data_prices)):
             asset += insert_asset
 
         data_price = data_prices.iloc[i]
-        if data_price["date"].hour != 4 and data_price["date"].minute == 0:
 
+        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_time:
             if i + 2 <= len(data_prices) - 1:
                 analysis_from = data_prices.iloc[i - 1]
                 analysis_to = data_price
                 data_entry = data_prices.iloc[i + 1]
                 data_close = data_prices.iloc[i + 2]
 
+                # + datetime.timedelta(hours=1)
                 if (analysis_from["date"] + datetime.timedelta(hours=1)).hour == analysis_to["date"].hour \
                         and analysis_to["date"].hour == data_entry["date"].hour \
                         and data_entry["date"].hour == data_close["date"].hour:

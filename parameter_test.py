@@ -8,16 +8,16 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-do_deposit = False
+do_deposit = True
 
-for i in range(30, 60):
+for i in range(15, 31):
 
     result_data = []
 
-    analysis_from_time = i
+    analysis_from_time = 51
     analysis_to_time = 0
     entry_time = 1
-    close_time = 18
+    close_time = i
 
     result_data.append("parameter : ")
     result_data.append(f"analysis_from_time {analysis_from_time}")
@@ -25,7 +25,7 @@ for i in range(30, 60):
     result_data.append(f"entry_time {entry_time}")
     result_data.append(f"close_time {close_time}")
 
-    insert_asset = 100000
+    insert_asset = 50000
     initial_profit = insert_asset
     leverage = 2
     asset = initial_profit
@@ -63,7 +63,6 @@ for i in range(30, 60):
         data_price = data_prices.iloc[i]
 
         if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_time:
-
             if i + 2 <= len(data_prices) - 1:
                 analysis_from = data_prices.iloc[i - 1]
                 analysis_to = data_price
@@ -84,16 +83,18 @@ for i in range(30, 60):
 
                         entry_sfd = data_entry["sfd"]
 
-                        amount = asset / entry_price
+                        amount = (asset * leverage) / entry_price
 
                         if (to_price - fr_price) < 0:
                             if entry_sfd >= 5:
                                 continue
-                            profit = (amount * close_price) - asset
+                            profit = (amount * close_price) - \
+                                (asset * leverage)
                         else:
                             if entry_sfd <= -5:
                                 continue
-                            profit = asset - (amount * close_price)
+                            profit = (asset * leverage) - \
+                                (amount * close_price)
 
                         profits.append(profit)
                         asset += profit
