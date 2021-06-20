@@ -9,11 +9,6 @@ from lib.config import DirPath, FilePath
 from lib.mysql import MySQL
 
 
-def play_sound(path: str):
-    play_command = "mpg123 -q {path}".format(path=path)
-    os.system(play_command)
-
-
 def get_file_path():
     cal_frame = inspect.getouterframes(inspect.currentframe(), 2)
     return cal_frame[2][1], cal_frame[2][2]
@@ -46,14 +41,12 @@ def warning(*contents):
     content = tuple_to_string(contents)
     file_path = str(get_file_path()).replace(DirPath.PROJECT.value, "")
     logger.warning(msg=content, extra={'file_path': file_path})
-    play_sound(FilePath.WARNING_MP3.value)
 
 
 def error(*contents):
     content = tuple_to_string(contents)
     file_path = str(get_file_path()).replace(DirPath.PROJECT.value, "")
     logger.error(msg=content, extra={'file_path': file_path})
-    play_sound(FilePath.ERROR_MP3.value)
 
 
 def custom_time(*args):
