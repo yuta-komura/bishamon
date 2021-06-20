@@ -116,7 +116,7 @@ class API:
 
                 collateral = collateral["collateral"]
                 valid_size = (collateral * self.LEVERAGE) / price
-                size = (valid_size - position_size) - 0.01
+                size = valid_size - position_size
                 return size
             except Exception:
                 message.error(traceback.format_exc())
