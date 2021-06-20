@@ -1,5 +1,4 @@
 import inspect
-import os
 from datetime import datetime
 from logging import DEBUG, FileHandler, Formatter, StreamHandler, getLogger
 
