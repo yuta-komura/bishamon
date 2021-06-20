@@ -17,20 +17,19 @@ def get_historical_price():
 
         sql = """
                 select
-                    cast(Time as datetime) as Date,
+                    cast(Date as datetime) as Date,
                     Price
                 from
                     (
                         select
-                            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as Time,
-                            cl.price as Price
+                            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as Date,
+                            op.price as Price
                         from
                             (
                                 select
-                                    min(id) as open_id,
-                                    max(id) as close_id
+                                    min(id) as open_id
                                 from
-                                    execution_history
+                                    execution_history_perp
                                 group by
                                     year(date),
                                     month(date),
@@ -42,11 +41,8 @@ def get_historical_price():
                                 limit {limit}
                             ) ba
                             inner join
-                                execution_history op
+                                execution_history_perp op
                             on  op.id = ba.open_id
-                            inner join
-                                execution_history cl
-                            on  cl.id = ba.close_id
                     ) as ohlc
                 order by
                     Date
@@ -56,7 +52,7 @@ def get_historical_price():
 
         if len(hp) == limit:
             first_Date = hp.loc[0]["Date"]
-            sql = "delete from execution_history where date < '{first_Date}'"\
+            sql = "delete from execution_history_perp where date < '{first_Date}'"\
                 .format(first_Date=first_Date)
             repository.execute(database=DATABASE, sql=sql, write=False)
             return hp
@@ -127,5 +123,4 @@ while True:
 
     if Minute in CLOSE_MINUTE and has_contract:
         save_entry(side="CLOSE")
-
         has_contract = False
