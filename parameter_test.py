@@ -10,14 +10,14 @@ pd_op.display_round_down()
 
 do_deposit = True
 
-for i in range(15, 31):
+for z in range(45, 59):
 
     result_data = []
 
-    analysis_from_time = 51
-    analysis_to_time = 0
-    entry_time = 1
-    close_time = i
+    analysis_from_time = 17
+    analysis_to_time = 29
+    entry_time = 44
+    close_time = z
 
     result_data.append("parameter : ")
     result_data.append(f"analysis_from_time {analysis_from_time}")
@@ -70,7 +70,7 @@ for i in range(15, 31):
                 data_close = data_prices.iloc[i + 2]
 
                 # + datetime.timedelta(hours=1)
-                if (analysis_from["date"] + datetime.timedelta(hours=1)).hour == analysis_to["date"].hour \
+                if (analysis_from["date"]).hour == analysis_to["date"].hour \
                         and analysis_to["date"].hour == data_entry["date"].hour \
                         and data_entry["date"].hour == data_close["date"].hour:
                     if analysis_from["date"].minute == analysis_from_time \
