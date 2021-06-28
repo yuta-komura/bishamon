@@ -55,6 +55,9 @@ def get_historical_price():
             sql = "delete from execution_history_perp where date < '{first_Date}'"\
                 .format(first_Date=first_Date)
             repository.execute(database=DATABASE, sql=sql, write=False)
+            sql = "delete from execution_history_spot where date < '{first_Date}'"\
+                .format(first_Date=first_Date)
+            repository.execute(database=DATABASE, sql=sql, write=False)
             return hp
         else:
             return None
