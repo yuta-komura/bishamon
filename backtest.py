@@ -27,27 +27,27 @@ pd_op.display_round_down()
 
 do_deposit = True
 
-analysis_from_time1 = 51
-analysis_to_time1 = 0
-entry_time1 = 1
-close_time1 = 18
+analysis_from_minutes1 = 51
+analysis_to_minutes1 = 0
+entry_minutes1 = 1
+close_minutes1 = 18
 
-analysis_from_time2 = 17
-analysis_to_time2 = 29
-entry_time2 = 45
-close_time2 = 49
+analysis_from_minutes2 = 17
+analysis_to_minutes2 = 29
+entry_minutes2 = 45
+close_minutes2 = 49
 
 print("parameter1 : ")
-print(f"analysis_from_time1 {analysis_from_time1}")
-print(f"analysis_to_time1 {analysis_to_time1}")
-print(f"entry_time1 {entry_time1}")
-print(f"close_time1 {close_time1}")
+print(f"analysis_from_time1 {analysis_from_minutes1}")
+print(f"analysis_to_time1 {analysis_to_minutes1}")
+print(f"entry_time1 {entry_minutes1}")
+print(f"close_time1 {close_minutes1}")
 
 print("parameter2 : ")
-print(f"analysis_from_time2 {analysis_from_time2}")
-print(f"analysis_to_time2 {analysis_to_time2}")
-print(f"entry_time2 {entry_time2}")
-print(f"close_time2 {close_time2}")
+print(f"analysis_from_time2 {analysis_from_minutes2}")
+print(f"analysis_to_time2 {analysis_to_minutes2}")
+print(f"entry_time2 {entry_minutes2}")
+print(f"close_time2 {close_minutes2}")
 
 insert_asset = 50000
 initial_profit = insert_asset
@@ -66,15 +66,15 @@ sql = f"""
             on  perp.date = spot.date
         where
             (
-            minute(perp.date) = {analysis_from_time1}
-            or minute(perp.date) = {analysis_to_time1}
-            or minute(perp.date) = {entry_time1}
-            or minute(perp.date) = {close_time1}
+            minute(perp.date) = {analysis_from_minutes1}
+            or minute(perp.date) = {analysis_to_minutes1}
+            or minute(perp.date) = {entry_minutes1}
+            or minute(perp.date) = {close_minutes1}
 
-            or minute(perp.date) = {analysis_from_time2}
-            or minute(perp.date) = {analysis_to_time2}
-            or minute(perp.date) = {entry_time2}
-            or minute(perp.date) = {close_time2}
+            or minute(perp.date) = {analysis_from_minutes2}
+            or minute(perp.date) = {analysis_to_minutes2}
+            or minute(perp.date) = {entry_minutes2}
+            or minute(perp.date) = {close_minutes2}
             )
             # and perp.date between '2021-06-20 23:00:00' and '2099-04-30 00:00:00'
         order by
@@ -95,7 +95,7 @@ for i in range(len(data_prices)):
 
         data_price = data_prices.iloc[i]
 
-        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_time1:
+        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_minutes1:
             if i + 3 <= len(data_prices) - 1:
                 analysis_from = data_prices.iloc[i - 1]
                 analysis_to = data_price
@@ -105,9 +105,9 @@ for i in range(len(data_prices)):
                 if (analysis_from["date"] + datetime.timedelta(hours=1)).hour == analysis_to["date"].hour \
                         and analysis_to["date"].hour == data_entry["date"].hour \
                         and data_entry["date"].hour == data_close["date"].hour:
-                    if analysis_from["date"].minute == analysis_from_time1 \
-                            and data_entry["date"].minute == entry_time1 \
-                            and data_close["date"].minute == close_time1:
+                    if analysis_from["date"].minute == analysis_from_minutes1 \
+                            and data_entry["date"].minute == entry_minutes1 \
+                            and data_close["date"].minute == close_minutes1:
                         to_price = analysis_to["perp_price"]
                         fr_price = analysis_from["perp_price"]
                         entry_price = data_entry["perp_price"]
@@ -140,7 +140,7 @@ for i in range(len(data_prices)):
                         asset += profit
                         asset_flow.append(asset)
 
-        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_time2:
+        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_minutes2:
             if i + 2 <= len(data_prices) - 1:
                 analysis_from = data_prices.iloc[i - 2]
                 analysis_to = data_price
@@ -150,9 +150,9 @@ for i in range(len(data_prices)):
                 if (analysis_from["date"]).hour == analysis_to["date"].hour \
                         and analysis_to["date"].hour == data_entry["date"].hour \
                         and data_entry["date"].hour == data_close["date"].hour:
-                    if analysis_from["date"].minute == analysis_from_time2 \
-                            and data_entry["date"].minute == entry_time2 \
-                            and data_close["date"].minute == close_time2:
+                    if analysis_from["date"].minute == analysis_from_minutes2 \
+                            and data_entry["date"].minute == entry_minutes2 \
+                            and data_close["date"].minute == close_minutes2:
                         to_price = analysis_to["perp_price"]
                         fr_price = analysis_from["perp_price"]
                         entry_price = data_entry["perp_price"]
