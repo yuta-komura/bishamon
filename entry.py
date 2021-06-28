@@ -29,7 +29,7 @@ def get_historical_price():
                                 select
                                     min(id) as open_id
                                 from
-                                    execution_history_perp
+                                    execution_history
                                 group by
                                     year(date),
                                     month(date),
@@ -41,7 +41,7 @@ def get_historical_price():
                                 limit {limit}
                             ) ba
                             inner join
-                                execution_history_perp op
+                                execution_history op
                             on  op.id = ba.open_id
                     ) as ohlc
                 order by
@@ -52,10 +52,7 @@ def get_historical_price():
 
         if len(hp) == limit:
             first_Date = hp.loc[0]["Date"]
-            sql = "delete from execution_history_perp where date < '{first_Date}'"\
-                .format(first_Date=first_Date)
-            repository.execute(database=DATABASE, sql=sql, write=False)
-            sql = "delete from execution_history_spot where date < '{first_Date}'"\
+            sql = "delete from execution_history where date < '{first_Date}'"\
                 .format(first_Date=first_Date)
             repository.execute(database=DATABASE, sql=sql, write=False)
             return hp

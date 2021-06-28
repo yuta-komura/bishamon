@@ -98,11 +98,18 @@ class bFwebsocket(object):
                         side = r["side"]
                         price = r["price"]
                         size = str(r["size"])
+
+                        # trading data
+                        sql = "insert into execution_history values (null,'{date}','{side}',{price},'{size}')"\
+                            .format(date=date, side=side, price=price, size=size)
+                        repository.execute(
+                            database=database, sql=sql, write=False)
+
+                        # historical data
                         sql = "insert into execution_history_perp values (null,'{date}','{side}',{price},'{size}')"\
                             .format(date=date, side=side, price=price, size=size)
-                        repository.execute(database=database,
-                                           sql=sql,
-                                           log=False)
+                        repository.execute(
+                            database=database, sql=sql, log=False)
                     except Exception:
                         pass
 
@@ -117,11 +124,12 @@ class bFwebsocket(object):
                         side = r["side"]
                         price = r["price"]
                         size = str(r["size"])
+
+                        # historical data
                         sql = "insert into execution_history_spot values (null,'{date}','{side}',{price},'{size}')"\
                             .format(date=date, side=side, price=price, size=size)
-                        repository.execute(database=database,
-                                           sql=sql,
-                                           log=False)
+                        repository.execute(
+                            database=database, sql=sql, log=False)
                     except Exception:
                         pass
 
