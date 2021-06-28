@@ -13,17 +13,17 @@ def can_trading(side):
 
 def get_historical_price():
     try:
-        limit = CHANNEL_BAR_NUM + 1
+        limit = CHANNEL_BAR_NUM
 
         sql = """
                 select
-                    cast(Date as datetime) as Date,
-                    Price
+                    cast(date as datetime) as date,
+                    price
                 from
                     (
                         select
-                            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as Date,
-                            op.price as Price
+                            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as date,
+                            op.price as price
                         from
                             (
                                 select
@@ -45,15 +45,15 @@ def get_historical_price():
                             on  op.id = ba.open_id
                     ) as ohlc
                 order by
-                    Date
+                    date
                 """.format(limit=limit)
 
         hp = repository.read_sql(database=DATABASE, sql=sql)
 
         if len(hp) == limit:
-            first_Date = hp.loc[0]["Date"]
-            sql = "delete from execution_history where date < '{first_Date}'"\
-                .format(first_Date=first_Date)
+            first_date = hp.loc[0]["date"]
+            sql = "delete from execution_history where date < '{first_date}'"\
+                .format(first_date=first_date)
             repository.execute(database=DATABASE, sql=sql, write=False)
             return hp
         else:
@@ -73,6 +73,8 @@ def save_entry(side):
             pass
 
 
+ANALYSIS_FROM_MINUTE = Anomaly.ANALYSIS_FROM_MINUTE.value
+ANALYSIS_TO_MINUTE = Anomaly.ANALYSIS_TO_MINUTE.value
 ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
 CLOSE_MINUTE = Anomaly.CLOSE_MINUTE.value
 
@@ -96,31 +98,33 @@ while True:
 
     i = len(hp) - 1
     latest = hp.iloc[i]
-    Date = latest["Date"]
-    Hour = Date.hour
-    Minute = Date.minute
+    date = latest["date"]
+    hour = date.hour
+    minute = date.minute
 
-    if Hour in MENTAINANCE_HOUR:
+    if hour in MENTAINANCE_HOUR:
         continue
 
-    if Minute in ENTRY_MINUTE and not has_contract:
-        i = 0
-        fr = hp.iloc[i]
-        fr_Price = fr["Price"]
+    for i in range(len(ENTRY_MINUTE)):
+        if minute == ENTRY_MINUTE[i] and not has_contract:
+            fr_recorde = hp[hp["date"].dt.minute == ANALYSIS_FROM_MINUTE[i]]
+            fr = fr_recorde.iloc[len(fr_recorde) - 1]
+            fr_price = fr["price"]
 
-        i = len(hp) - 2
-        to = hp.iloc[i]
-        to_Price = to["Price"]
+            to_recorde = hp[hp["date"].dt.minute == ANALYSIS_TO_MINUTE[i]]
+            to = to_recorde.iloc[len(to_recorde) - 1]
+            to_price = to["price"]
 
-        if (to_Price - fr_Price) < 0:
-            side = "BUY"
-        else:
-            side = "SELL"
+            if (to_price - fr_price) < 0:
+                side = "BUY"
+            else:
+                side = "SELL"
 
-        if can_trading(side=side):
-            save_entry(side=side)
-            has_contract = True
+            if can_trading(side=side):
+                save_entry(side=side)
+                has_contract = True
 
-    if Minute in CLOSE_MINUTE and has_contract:
-        save_entry(side="CLOSE")
-        has_contract = False
+    for i in range(len(CLOSE_MINUTE)):
+        if minute == CLOSE_MINUTE[i] and has_contract:
+            save_entry(side="CLOSE")
+            has_contract = False
