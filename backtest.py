@@ -25,7 +25,7 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-do_deposit = False
+do_deposit = True
 
 analysis_from_time1 = 51
 analysis_to_time1 = 0
@@ -85,8 +85,7 @@ data_prices = repository.read_sql(database=database, sql=sql)
 print(data_prices)
 
 profits = []
-profit_flow = []
-now_profit = 0
+asset_flow = []
 for i in range(len(data_prices)):
     if i - 1 >= 0:
         before_data_month = data_prices.iloc[i - 1]["date"].month
@@ -138,8 +137,8 @@ for i in range(len(data_prices)):
                                 data_entry["perp_price"])
 
                         profits.append(profit)
-                        now_profit += profit
-                        profit_flow.append(now_profit)
+                        asset += profit
+                        asset_flow.append(asset)
 
         if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_time2:
             if i + 2 <= len(data_prices) - 1:
@@ -183,8 +182,8 @@ for i in range(len(data_prices)):
                                 data_entry["perp_price"])
 
                         profits.append(profit)
-                        now_profit += profit
-                        profit_flow.append(now_profit)
+                        asset += profit
+                        asset_flow.append(asset)
 
 wins = []
 loses = []
@@ -220,6 +219,6 @@ print("trading cnt", len(profits))
 
 fig = plt.figure(figsize=(24, 12), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
-ax1.plot(list(range(len(profit_flow))), profit_flow)
+ax1.plot(list(range(len(asset_flow))), asset_flow)
 fig.savefig("backtest_result.png")
 plt.show()

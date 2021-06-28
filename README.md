@@ -1,40 +1,65 @@
 # bishamon
-bitflyer-lightning（btcfxjpy）用のビットコイン自動売買botです。  
+
+bitflyer-lightning（btcfxjpy）用のビットコイン自動売買 bot です。
 
 **免責事項**：  
-当botの利用により損失や被害が生じた場合、作者は一切の責任を負うことはできません。  
-投資は自己責任でお願いします。　　
+当 bot の利用により損失や被害が生じた場合、作者は一切の責任を負うことはできません。  
+投資は自己責任でお願いします。
 
 ---
+
 [ライセンス](https://github.com/yuta-komura/bishamon/blob/master/LICENSE)
 
----    
-### パフォーマンス
+---
+
+### 複利パフォーマンス
+
 **initial parameter**：  
-資産 50,000円  
-月一で 50,000円 depositする  
+資産 50,000 円  
+月一で 50,000 円 deposit する
 
 **backtest result**：  
-2019-10-02 02:51:00 〜 2021-06-20 04:18:00  
-総利益 985,158,191円  
-pf  1.22  
-勝率 55 %  
-ic   0.11  
-trading cnt 12105  
+2019-10-02 02:29:00 〜 2021-06-28 19:18:00  
+総利益 38,126,051,215 円  
+pf 1.27  
+wp 54 %  
+ic 0.09  
+trading cnt 24336
 
 pnl curve  
-<a href="https://imgur.com/ducGuW3"><img src="https://i.imgur.com/ducGuW3.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/8T9qzoW"><img src="https://i.imgur.com/8T9qzoW.png" title="source: imgur.com" /></a>
 
----  
-### 環境  
+### 単利パフォーマンス
+
+**initial parameter**：  
+資産 50,000 円
+
+**backtest result**：  
+2019-10-02 02:29:00 〜 2021-06-28 19:18:00  
+総利益 662,610 円  
+pf 1.26  
+wp 54 %  
+ic 0.09  
+trading cnt 24336
+
+pnl curve  
+<a href="https://imgur.com/BRBENTL"><img src="https://i.imgur.com/BRBENTL.png" title="source: imgur.com" /></a>
+
+---
+
+### 環境
+
 ubuntu20.04 / mysql / python
 
----  
-### インストール  
+---
+
+### インストール
+
 **mysql**：  
-db.sql参照  
+db.sql 参照  
 必要なデータベースとテーブルを作成後、  
-lib/config.pyに設定してください。
+lib/config.py に設定してください。
+
 ```python:config.py
 class DATABASE(Enum):
     class TRADINGBOT(Enum):
@@ -44,18 +69,20 @@ class DATABASE(Enum):
         DATABASE = 'tradingbot'
 ```
 
-**pythonライブラリ**：  
-同梱のrequirements.txtを利用して、インストールを行ってください。
+**python ライブラリ**：  
+同梱の requirements.txt を利用して、インストールを行ってください。
+
 ```bash
 pip install -r requirements.txt
 ```
 
 **bitflyer apikey**：  
-1．bitflyer-lightningのサイドバーから"API"を選択  
+1．bitflyer-lightning のサイドバーから"API"を選択  
 <a href="https://imgur.com/afZrmWf"><img src="https://i.imgur.com/afZrmWf.png" title="source: imgur.com" /></a>  
-2．"新しいAPIキーを追加"を選択しapikeyを作成  
+2．"新しい API キーを追加"を選択し apikey を作成  
 <a href="https://imgur.com/x56kiBy"><img src="https://i.imgur.com/x56kiBy.png" title="source: imgur.com" /></a>  
-3．lib/config.pyに設定してください。
+3．lib/config.py に設定してください。
+
 ```python:config.py
 class Bitflyer(Enum):
     class Api(Enum):
@@ -63,17 +90,10 @@ class Bitflyer(Enum):
         SECRET = "sdjkalsxc90wdwkksldfdscmcldsa"
 ```
 
-**mpg123インストール**：  
-このシステムでは、loggerのwarningまたはerror出力時に  
-音声が流れるようになっております。  
-```bash
-sudo apt update -y
-sudo apt install -y mpg123
-```
-
 **レバレッジ**：  
-このシステムでは、レバレッジ4倍分のポジションサイズをとります。  
-ポジションサイズの変更は**lib/bitflyer.py**のコンストラクタで設定してください。  
+このシステムでは、レバレッジ 4 倍分のポジションサイズをとります。  
+ポジションサイズの変更は**lib/bitflyer.py**のコンストラクタで設定してください。
+
 ```python:bitflyer.py
     def __init__(self, api_key, api_secret):
         self.api = pybitflyer.API(api_key=api_key, api_secret=api_secret)
@@ -81,21 +101,30 @@ sudo apt install -y mpg123
         self.LEVERAGE = 4
         self.DATABASE = "tradingbot"
 ```
----  
-### 起動方法  
-下記2点のシェルスクリプトを実行してください。（別画面で）  
+
+---
+
+### 起動方法
+
+下記 2 点のシェルスクリプトを実行してください。（別画面で）
 
 **get_realtime_data.sh**：  
-websocketプロトコルを利用しRealtime APIと通信。  
-tickerと約定履歴（ローソク足作成用）を取得します。  
+websocket プロトコルを利用し Realtime API と通信。  
+ticker と約定履歴（ローソク足作成用）を取得します。
+
 ```bash
 sh bishamon/main/get_realtime_data.sh
 ```
+
 **execute.sh**：  
-メインスクリプト用  
+メインスクリプト用
+
 ```bash
-sh bishamon/main/execute.sh 
+sh bishamon/main/execute.sh
 ```
----  
-### main process  
+
+---
+
+### main process
+
 <a href="https://imgur.com/D9MlxAZ"><img src="https://i.imgur.com/D9MlxAZ.png" title="source: imgur.com" /></a>
