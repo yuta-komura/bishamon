@@ -108,10 +108,16 @@ while True:
     for i in range(len(ENTRY_MINUTE)):
         if minute == ENTRY_MINUTE[i] and not has_contract:
             fr_recorde = hp[hp["date"].dt.minute == ANALYSIS_FROM_MINUTE[i]]
+            if fr_recorde.empty:
+                continue
+
             fr = fr_recorde.iloc[len(fr_recorde) - 1]
             fr_price = fr["price"]
 
             to_recorde = hp[hp["date"].dt.minute == ANALYSIS_TO_MINUTE[i]]
+            if to_recorde.empty:
+                continue
+
             to = to_recorde.iloc[len(to_recorde) - 1]
             to_price = to["price"]
 
