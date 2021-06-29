@@ -1,5 +1,6 @@
 import time
 import traceback
+from decimal import Decimal
 
 import pybitflyer
 
@@ -11,7 +12,7 @@ class API:
     def __init__(self, api_key, api_secret):
         self.api = pybitflyer.API(api_key=api_key, api_secret=api_secret)
         self.PRODUCT_CODE = "FX_BTC_JPY"
-        self.LEVERAGE = 2
+        self.LEVERAGE = Decimal("2")
         self.DATABASE = "tradingbot"
 
     def order(self, side):
@@ -23,8 +24,7 @@ class API:
                 position = self.__get_position()
 
                 has_position = position["side"] is not None
-                should_close = has_position \
-                    and (side != position["side"] and position["size"] >= 0.01)
+                should_close = has_position and side != position["side"]
                 if should_close:
                     self.close()
                     continue
@@ -55,11 +55,20 @@ class API:
 
                 position = self.__get_position()
 
-                has_completed_close = \
-                    position["side"] is None or position["size"] < 0.01
+                has_completed_close = position["size"] < 0.000001
                 if has_completed_close:
                     message.info("close complete")
                     return
+
+                has_waste_size = 0.000001 <= position["size"] < 0.01
+                if has_waste_size:
+                    message.info("has waste size")
+                    side = position["side"]
+                    size = 0.01
+                    price = self.__get_order_price(side=side)
+                    self.__send_order(side=side, size=size, price=price)
+                    time.sleep(1)
+                    continue
 
                 side = self.__reverse_side(side=position["side"])
                 size = position["size"]
@@ -103,8 +112,7 @@ class API:
 
     @staticmethod
     def __order_normalize(side, size, price):
-        side = str(side)
-        size = float(math.round_down(size, -2))
+        size = float(math.round_down(size, -6))
         price = int(price)
         return side, size, price
 
@@ -113,8 +121,10 @@ class API:
         while True:
             try:
                 collateral = self.api.getcollateral()
+                collateral = Decimal(str(collateral["collateral"]))
+                price = Decimal(str(price))
+                position_size = Decimal(str(position_size))
 
-                collateral = collateral["collateral"]
                 valid_size = (collateral * self.LEVERAGE) / price
                 size = valid_size - position_size
                 return size
@@ -153,10 +163,10 @@ class API:
                     self.api.getpositions(product_code=self.PRODUCT_CODE)
 
                 side = None
-                size = 0
+                size = Decimal("0")
                 for position in positions:
                     side = position["side"]
-                    size += position["size"]
+                    size += Decimal(str(position["size"]))
 
                 return {"side": side, "size": size}
             except Exception:
