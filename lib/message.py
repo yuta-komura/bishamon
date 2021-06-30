@@ -31,7 +31,6 @@ def content_formatter(content: str):
 
 def info(*contents):
     content = tuple_to_string(contents)
-    content = content_formatter(content)
     file_path = str(get_file_path()).replace(DirPath.PROJECT.value, "")
     logger.info(msg=content, extra={'file_path': file_path})
 
