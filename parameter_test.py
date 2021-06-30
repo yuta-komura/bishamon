@@ -1,5 +1,3 @@
-import datetime
-
 from lib import math, message
 from lib import pandas_option as pd_op
 from lib import repository
@@ -10,14 +8,14 @@ pd_op.display_round_down()
 
 do_deposit = True
 
-for z in range(45, 59):
+for z in range(0, 13):
 
     result_data = []
 
-    analysis_from_time = 17
-    analysis_to_time = 29
-    entry_time = 44
-    close_time = z
+    analysis_from_time = z
+    analysis_to_time = 13
+    entry_time = 19
+    close_time = 44
 
     result_data.append("parameter : ")
     result_data.append(f"analysis_from_time {analysis_from_time}")
