@@ -12,39 +12,67 @@ bitflyer-lightning（btcfxjpy）用のビットコイン自動売買 bot です�
 
 ---
 
+### パラメータ
+
+parameter1 :  
+analysis_from_minutes 51  
+analysis_to_minutes 0  
+entry_minutes 1  
+close_minutes 18  
+  
+parameter2 :  
+analysis_from_minutes 1  
+analysis_to_minutes 13  
+entry_minutes 20  
+close_minutes 36  
+  
+parameter3 :  
+analysis_from_minutes 17  
+analysis_to_minutes 29  
+entry_minutes 45  
+close_minutes 49  
+
+---
+
 ### 複利パフォーマンス
+
+※profitを資産に入れて、複利で運用する  
+※システムは複利運用を採用する
 
 **initial parameter**：  
 資産 50,000 円  
 月一で 50,000 円 deposit する  
-レバレッジ 2倍  
+レバレッジ 2 倍
 
 **backtest result**：  
 2019-10-02 02:29:00 〜 2021-06-30 16:13:00  
-総利益 54,562,603,794,457 円  
-pf 1.5  
+総利益 129,651,387,738,668 円  
+pf 1.63  
 勝率 54 %  
 ic 0.09  
-trading回数 35697  
+trading回数 35729
 
 pnl curve  
-<a href="https://imgur.com/8T9qzoW"><img src="https://i.imgur.com/8T9qzoW.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/oQVyuEs"><img src="https://i.imgur.com/oQVyuEs.png" title="source: imgur.com" /></a>
 
 ### 単利パフォーマンス
 
+※entry 時は資産分賭ける
+
 **initial parameter**：  
-資産 50,000 円
+資産 50,000 円  
+レバレッジ 2 倍
 
 **backtest result**：  
-2019-10-02 02:29:00 〜 2021-06-28 19:18:00  
-総利益 662,610 円  
-pf 1.26  
-wp 54 %  
+2019-10-02 02:29:00 〜 2021-06-30 16:13:00  
+総利益 1,085,381 円  
+pf 1.27  
+勝率 54 %  
 ic 0.09  
-trading cnt 24336
+trading回数 35729
 
 pnl curve  
-<a href="https://imgur.com/BRBENTL"><img src="https://i.imgur.com/BRBENTL.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/oIxbKEk"><img src="https://i.imgur.com/oIxbKEk.png" title="source: imgur.com" /></a>
 
 ---
 

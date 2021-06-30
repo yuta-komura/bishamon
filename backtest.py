@@ -68,8 +68,8 @@ close_minutes1 = 18
 
 analysis_from_minutes2 = 1
 analysis_to_minutes2 = 13
-entry_minutes2 = 19
-close_minutes2 = 44
+entry_minutes2 = 20
+close_minutes2 = 36
 
 analysis_from_minutes3 = 17
 analysis_to_minutes3 = 29
@@ -242,7 +242,7 @@ print("")
 print(start_date, "〜", finish_date, " ")
 print("総利益", add_price_comma(int(sum(profits))), "円  ")
 if pf:
-    print("pf", math.round_down(pf, -2)," ")
+    print("pf", math.round_down(pf, -2), " ")
 if pc:
     print("勝率", math.round_down(pc * 100, 0), "%", " ")
 if ic:

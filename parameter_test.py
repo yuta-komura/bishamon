@@ -8,14 +8,14 @@ pd_op.display_round_down()
 
 do_deposit = True
 
-for z in range(0, 13):
+for z in range(21, 45):
 
     result_data = []
 
-    analysis_from_time = z
+    analysis_from_time = 1
     analysis_to_time = 13
-    entry_time = 19
-    close_time = 44
+    entry_time = 20
+    close_time = z
 
     result_data.append("parameter : ")
     result_data.append(f"analysis_from_time {analysis_from_time}")
