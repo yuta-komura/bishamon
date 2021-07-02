@@ -5,33 +5,33 @@ CREATE DATABASE tradingbot;
 CREATE TABLE `entry` (`side` varchar(255) NOT NULL);
 
 CREATE TABLE `execution_history` (
-    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `date` datetime(6) NOT NULL,
-    `side` varchar(255) NOT NULL,
-    `price` int unsigned NOT NULL,
-    `size` decimal(65, 30) unsigned NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `execution_history1` (`date`)
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `date` datetime(6) NOT NULL,
+  `side` varchar(255) NOT NULL,
+  `price` int unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `execution_history1` (`date`)
 );
 
 CREATE TABLE `execution_history_perp` (
-    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `date` datetime(6) NOT NULL,
-    `side` varchar(255) NOT NULL,
-    `price` int unsigned NOT NULL,
-    `size` decimal(65, 30) unsigned NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `execution_history_perp1` (`date`)
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `date` datetime(6) NOT NULL,
+  `side` varchar(255) NOT NULL,
+  `price` int unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `execution_history_perp1` (`date`)
 );
 
 CREATE TABLE `execution_history_spot` (
-    `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-    `date` datetime(6) NOT NULL,
-    `side` varchar(255) NOT NULL,
-    `price` int unsigned NOT NULL,
-    `size` decimal(65, 30) unsigned NOT NULL,
-    PRIMARY KEY (`id`),
-    KEY `execution_history_spot1` (`date`)
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `date` datetime(6) NOT NULL,
+  `side` varchar(255) NOT NULL,
+  `price` int unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `execution_history_spot1` (`date`)
 );
 
 CREATE TABLE `ohlcv_1min_bitflyer_spot` (
@@ -40,7 +40,7 @@ CREATE TABLE `ohlcv_1min_bitflyer_spot` (
   `high` int unsigned NOT NULL,
   `low` int unsigned NOT NULL,
   `close` int unsigned NOT NULL,
-  `volume` decimal(65,8) unsigned NOT NULL,
+  `volume` decimal(65, 8) unsigned NOT NULL,
   KEY `ohlcv_1min_bitflyer_spot1` (`date`)
 );
 
@@ -50,8 +50,17 @@ CREATE TABLE `ohlcv_1min_bitflyer_perp` (
   `high` int unsigned NOT NULL,
   `low` int unsigned NOT NULL,
   `close` int unsigned NOT NULL,
-  `volume` decimal(65,8) unsigned NOT NULL,
+  `volume` decimal(65, 8) unsigned NOT NULL,
   KEY `ohlcv_1min_bitflyer_perp1` (`date`)
+);
+
+CREATE TABLE `quotes_bitflyer_perp` (
+  `date` datetime(6) NOT NULL,
+  `ask_price` int unsigned NOT NULL,
+  `ask_size` decimal(65, 30) unsigned NOT NULL,
+  `bid_price` int unsigned NOT NULL,
+  `bid_size` decimal(65, 30) unsigned NOT NULL,
+  KEY `quotes_bitflyer_perp1` (`date`)
 );
 
 CREATE TABLE `coinapi_key` (
