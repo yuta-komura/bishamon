@@ -24,7 +24,8 @@ class API:
                 position = self.__get_position()
 
                 has_position = position["side"] is not None
-                should_close = has_position and side != position["side"]
+                should_close = has_position and side != position["side"] \
+                    and not position["size"] < 0.000001
                 if should_close:
                     self.close()
                     continue
@@ -127,6 +128,7 @@ class API:
 
                 valid_size = (collateral * self.LEVERAGE) / price
                 size = valid_size - position_size
+                size = size - Decimal("0.000001")
                 return size
             except Exception:
                 message.error(traceback.format_exc())
