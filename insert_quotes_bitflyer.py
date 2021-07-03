@@ -22,6 +22,9 @@ insert_table = f"quotes_bitflyer_{symbol_type.lower()}"
 symbol_id = f"BITFLYERLTNG_{symbol_type}_BTC_JPY"
 url = f"https://rest.coinapi.io/v1/quotes/{symbol_id}/history"
 
+sql = f"truncate {insert_table}"
+repository.execute(database=database, sql=sql, log=False)
+
 sql = "select * from coinapi_key"
 data = repository.read_sql(database=database, sql=sql)
 if data.empty:
@@ -35,7 +38,7 @@ while True:
     sql = f"select date from {insert_table} order by date desc limit 1"
     data = repository.read_sql(database=database, sql=sql)
     if data.empty:
-        time_start = "2000-01-01T00:00:00"
+        time_start = "2020-03-11T15:00:00"
     else:
         latest_date = data.iloc[0]["date"].tz_localize("Asia/Tokyo")
         latest_date = latest_date.astimezone(pytz.utc)
@@ -82,3 +85,10 @@ while True:
         pprint(data)
 
     before_time_start = time_start
+
+"""
+sql = "select 100 - (( bid_price / ask_price ) * 100) as spread from quotes_bitflyer_perp"
+
+data = repository.read_sql(database=database, sql=sql)
+print(data["spread"].median())
+"""
