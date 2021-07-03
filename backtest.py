@@ -16,12 +16,12 @@ def calc_profit(analysis_from, analysis_to, entry, close):
 
     entry_sfd = entry["sfd"]
 
-    amount = (asset * leverage) / entry_price
-
     if (to_price - fr_price) < 0:
         if entry_sfd >= 5:
             return 0
-
+        entry_price += entry_price * (spread_ratio / 100)
+        close_price -= close_price * (spread_ratio / 100)
+        amount = (asset * leverage) / entry_price
         profit = (amount * close_price) - \
             (asset * leverage)
         print(
@@ -31,7 +31,9 @@ def calc_profit(analysis_from, analysis_to, entry, close):
     else:
         if entry_sfd <= -5:
             return 0
-
+        entry_price -= entry_price * (spread_ratio / 100)
+        close_price += close_price * (spread_ratio / 100)
+        amount = (asset * leverage) / entry_price
         profit = (asset * leverage) - \
             (amount * close_price)
         print(
@@ -52,6 +54,8 @@ def add_price_comma(price: int) -> str:
     price = ''.join(list(reversed(add_comma_price)))
     if(len(price) > 0 and price[0] == ","):
         price = price[1:]
+    if(len(price) > 1 and price[0:2] == "-,"):
+        price = "-" + price[2:]
     return price
 
 
@@ -59,7 +63,10 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-do_deposit = True
+spread_ratio = 0
+MENTAINANCE_HOUR = [3, 4, 5, 6, 7]
+
+do_deposit = False
 
 analysis_from_minutes1 = 51
 analysis_to_minutes1 = 0
@@ -108,7 +115,7 @@ sql = f"""
             or minute(perp.date) = {entry_minutes3}
             or minute(perp.date) = {close_minutes3}
             )
-            # and perp.date between '2021-06-29 23:00:00' and '2099-04-30 00:00:00'
+            # and perp.date between '2021-06-01 00:00:00' and '2099-04-30 00:00:00'
         order by
             date
         """
@@ -116,6 +123,7 @@ data_prices = repository.read_sql(database=database, sql=sql)
 
 profits = []
 asset_flow = []
+p = 0
 for i in range(len(data_prices)):
 
     try:
@@ -126,7 +134,10 @@ for i in range(len(data_prices)):
 
         data_price = data_prices.iloc[i]
 
-        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_minutes1:
+        if data_price["date"].hour in MENTAINANCE_HOUR:
+            continue
+
+        if data_price["date"].minute == analysis_to_minutes1:
             if i - 1 > 0:
                 analysis_from = data_prices.iloc[i - 1]
                 analysis_to = data_price
@@ -139,16 +150,17 @@ for i in range(len(data_prices)):
                     if analysis_from["date"].minute == analysis_from_minutes1 \
                             and entry["date"].minute == entry_minutes1 \
                             and close["date"].minute == close_minutes1:
+
                         profit = calc_profit(
                             analysis_from, analysis_to, entry, close)
 
                         if profit != 0:
                             profits.append(profit)
-                            asset += profit
-                            asset_flow.append(asset)
+                            p += profit
+                            asset_flow.append(p)
             continue
 
-        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_minutes2:
+        if data_price["date"].minute == analysis_to_minutes2:
             if i - 1 > 0:
                 analysis_from = data_prices.iloc[i - 1]
                 analysis_to = data_price
@@ -161,16 +173,17 @@ for i in range(len(data_prices)):
                     if analysis_from["date"].minute == analysis_from_minutes2 \
                             and entry["date"].minute == entry_minutes2 \
                             and close["date"].minute == close_minutes2:
+
                         profit = calc_profit(
                             analysis_from, analysis_to, entry, close)
 
                         if profit != 0:
                             profits.append(profit)
-                            asset += profit
-                            asset_flow.append(asset)
+                            p += profit
+                            asset_flow.append(p)
             continue
 
-        if data_price["date"].hour != 4 and data_price["date"].minute == analysis_to_minutes3:
+        if data_price["date"].minute == analysis_to_minutes3:
             if i - 3 > 0:
                 analysis_from = data_prices.iloc[i - 3]
                 analysis_to = data_price
@@ -183,13 +196,14 @@ for i in range(len(data_prices)):
                     if analysis_from["date"].minute == analysis_from_minutes3 \
                             and entry["date"].minute == entry_minutes3 \
                             and close["date"].minute == close_minutes3:
+
                         profit = calc_profit(
                             analysis_from, analysis_to, entry, close)
 
                         if profit != 0:
                             profits.append(profit)
-                            asset += profit
-                            asset_flow.append(asset)
+                            p += profit
+                            asset_flow.append(p)
             continue
     except Exception as e:
         print(e)

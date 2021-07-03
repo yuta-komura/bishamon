@@ -18,25 +18,25 @@ parameter1 :
 analysis_from_minutes 51  
 analysis_to_minutes 0  
 entry_minutes 1  
-close_minutes 18  
-  
+close_minutes 18
+
 parameter2 :  
 analysis_from_minutes 1  
 analysis_to_minutes 13  
 entry_minutes 20  
-close_minutes 36  
-  
+close_minutes 36
+
 parameter3 :  
 analysis_from_minutes 17  
 analysis_to_minutes 29  
 entry_minutes 45  
-close_minutes 49  
+close_minutes 49
 
 ---
 
 ### 複利パフォーマンス
 
-※profitを資産に入れて、複利で運用する  
+※profit を資産に入れて、複利で運用する  
 ※システムは複利運用を採用する
 
 **initial parameter**：  
@@ -46,14 +46,14 @@ close_minutes 49
 
 **backtest result**：  
 2019-10-02 02:29:00 〜 2021-06-30 16:13:00  
-総利益 129,651,387,738,668 円  
-pf 1.63  
+総利益 5,489,404,433,908 円  
+pf 1.7  
 勝率 54 %  
 ic 0.09  
-trading回数 35729
+trading 回数 30193
 
 pnl curve  
-<a href="https://imgur.com/oQVyuEs"><img src="https://i.imgur.com/oQVyuEs.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/l4NrxWs"><img src="https://i.imgur.com/l4NrxWs.png" title="source: imgur.com" /></a>
 
 ### 単利パフォーマンス
 
@@ -64,15 +64,15 @@ pnl curve
 レバレッジ 2 倍
 
 **backtest result**：  
-2019-10-02 02:29:00 〜 2021-06-30 16:13:00  
-総利益 1,085,381 円  
+2019-10-02 02:29:00 〜 2021-07-03 16:13:00  
+総利益 910,155 円  
 pf 1.27  
 勝率 54 %  
 ic 0.09  
-trading回数 35729
+trading 回数 30193
 
 pnl curve  
-<a href="https://imgur.com/oIxbKEk"><img src="https://i.imgur.com/oIxbKEk.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/LiQXVfC"><img src="https://i.imgur.com/LiQXVfC.png" title="source: imgur.com" /></a>
 
 ---
 
