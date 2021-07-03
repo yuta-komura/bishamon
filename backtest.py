@@ -63,10 +63,11 @@ database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
+insert_asset = 50000
+# spread_ratio = 0.0016  # 0.0008 * 2
 spread_ratio = 0
 MENTAINANCE_HOUR = [3, 4, 5, 6, 7]
-
-do_deposit = False
+do_deposit = True
 
 analysis_from_minutes1 = 51
 analysis_to_minutes1 = 0
@@ -83,7 +84,6 @@ analysis_to_minutes3 = 29
 entry_minutes3 = 45
 close_minutes3 = 49
 
-insert_asset = 50000
 initial_profit = insert_asset
 leverage = 2
 asset = initial_profit
@@ -123,7 +123,6 @@ data_prices = repository.read_sql(database=database, sql=sql)
 
 profits = []
 asset_flow = []
-p = 0
 for i in range(len(data_prices)):
 
     try:
@@ -156,8 +155,8 @@ for i in range(len(data_prices)):
 
                         if profit != 0:
                             profits.append(profit)
-                            p += profit
-                            asset_flow.append(p)
+                            asset += profit
+                            asset_flow.append(asset)
             continue
 
         if data_price["date"].minute == analysis_to_minutes2:
@@ -179,8 +178,8 @@ for i in range(len(data_prices)):
 
                         if profit != 0:
                             profits.append(profit)
-                            p += profit
-                            asset_flow.append(p)
+                            asset += profit
+                            asset_flow.append(asset)
             continue
 
         if data_price["date"].minute == analysis_to_minutes3:
@@ -202,8 +201,8 @@ for i in range(len(data_prices)):
 
                         if profit != 0:
                             profits.append(profit)
-                            p += profit
-                            asset_flow.append(p)
+                            asset += profit
+                            asset_flow.append(asset)
             continue
     except Exception as e:
         print(e)
