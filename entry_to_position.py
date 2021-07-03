@@ -56,24 +56,7 @@ while True:
 
     if side != latest_side:
         if side == "CLOSE":
-
             bitflyer.close()
-
-            for i in range(10):
-                if retry_sleep(secs=10, side=side):
-                    message.info("close retry")
-                    bitflyer.close()
-                    message.info("close retry complete")
-                else:
-                    break
-
-            for i in range(60):
-                if retry_sleep(secs=30, side=side):
-                    message.info("close retry")
-                    bitflyer.close()
-                    message.info("close retry complete")
-                else:
-                    break
 
         else:  # side is BUY or SELL
             bitflyer.order(side=side)
