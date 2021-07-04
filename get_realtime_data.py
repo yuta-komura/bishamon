@@ -1,14 +1,13 @@
-import datetime as dt
 import hmac
 import json
 import os
 import signal
 import time
-from datetime import datetime as dtdt
 from hashlib import sha256
 from secrets import token_hex
 from threading import Thread
 
+import pandas as pd
 import websocket
 
 from lib import repository
@@ -89,21 +88,14 @@ class bFwebsocket(object):
             if channel == "lightning_executions_FX_BTC_JPY":
                 for r in recept_data:
                     try:
-                        date = r["exec_date"][:26]
-                        date = date.replace("T", " ").replace("Z", "")
-                        date = \
-                            dtdt.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
-                        date = date + dt.timedelta(hours=9)
+                        date = pd.to_datetime(
+                            r["exec_date"]).tz_convert('Asia/Tokyo')
                         side = r["side"]
                         price = r["price"]
                         size = str(r["size"])
-
-                        # trading data
-                        sql = "insert into execution_history values (null,'{date}','{side}',{price},'{size}')"\
-                            .format(date=date, side=side, price=price, size=size)
+                        sql = f"insert into execution_history values (null,'{date}','{side}',{price},'{size}')"
                         repository.execute(
                             database=database, sql=sql, log=False)
-
                     except Exception:
                         pass
 
