@@ -1,4 +1,5 @@
 import datetime
+import sys
 import traceback
 
 import pandas as pd
@@ -10,11 +11,13 @@ data_start_date = datetime.datetime(2019, 10, 1)
 data_end_date = datetime.datetime(2021, 7, 2)
 
 database = "tradingbot"
-conn = MySQL(database=database).conn
-cur = conn.cursor()
 
 data_date = data_start_date
 while True:
+
+    conn = MySQL(database=database).conn
+    cur = conn.cursor()
+
     url = f"https://public.bybit.com/trading/BTCUSD/BTCUSD{data_date.strftime('%Y-%m-%d')}.csv.gz"
     executions = pd.read_csv(url)
     executions["date"] = \
@@ -37,11 +40,11 @@ while True:
         except Exception:
             message.error(traceback.format_exc())
 
-    data_date += datetime.timedelta(days=1)
+    conn.commit()
+    conn.close()
+    cur.close()
 
+    data_date += datetime.timedelta(days=1)
     if data_date > data_end_date:
-        conn.commit()
-        conn.close()
-        cur.close()
         print("complete")
-        break
+        sys.exit()
