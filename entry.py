@@ -1,4 +1,5 @@
 import datetime
+import time
 
 from lib import bitflyer, message, repository
 from lib.config import Anomaly, Bitflyer, Trading
@@ -11,6 +12,17 @@ def can_trading(side):
         return False
     else:
         return True
+
+
+def reduce_execution_history():
+    date = datetime.datetime.now()
+    year = date.year
+    month = date.month
+    day = date.day
+    hour = date.hour
+    first_date = datetime.datetime(year, month, day, hour, 0, 0, 0)
+    sql = f"delete from execution_history where date < '{first_date}'"
+    repository.execute(database=DATABASE, sql=sql, write=False)
 
 
 def get_historical_price():
@@ -46,13 +58,7 @@ def get_historical_price():
             order by
                 date
             """
-
-    hp = repository.read_sql(database=DATABASE, sql=sql)
-
-    first_date = hp.loc[0]["date"]
-    sql = f"delete from execution_history where date < '{first_date}'"
-    repository.execute(database=DATABASE, sql=sql, write=False)
-    return hp
+    return repository.read_sql(database=DATABASE, sql=sql)
 
 
 def save_entry(side):
@@ -86,21 +92,29 @@ while True:
     minute = date.minute
 
     if hour in MENTAINANCE_HOUR:
+        reduce_execution_history()
+        time.sleep(1)
         continue
 
     for i in range(len(ENTRY_MINUTE)):
         if minute == ENTRY_MINUTE[i] and not has_contract:
+
             hp = get_historical_price()
+
+            reduce_execution_history()
+
+            if hp.empty:
+                break
 
             fr_recorde = hp[hp["date"].dt.minute == ANALYSIS_FROM_MINUTE[i]]
             if fr_recorde.empty:
-                continue
+                break
             fr = fr_recorde.iloc[0]
             fr_price = fr["price"]
 
             to_recorde = hp[hp["date"].dt.minute == ANALYSIS_TO_MINUTE[i]]
             if to_recorde.empty:
-                continue
+                break
             to = to_recorde.iloc[0]
             to_price = to["price"]
 
@@ -112,7 +126,7 @@ while True:
             if can_trading(side=side):
                 save_entry(side=side)
                 has_contract = True
-        else:
+
             break
 
     for i in range(len(CLOSE_MINUTE)):
