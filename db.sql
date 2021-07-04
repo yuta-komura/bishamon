@@ -14,6 +14,16 @@ CREATE TABLE `execution_history` (
   KEY `execution_history1` (`date`)
 );
 
+CREATE TABLE `execution_history_bybit` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `date` datetime(6) NOT NULL,
+  `side` varchar(255) NOT NULL,
+  `price` decimal(65, 30) unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `execution_history_bybit1` (`date`)
+);
+
 CREATE TABLE `ohlcv_1min_bitflyer_spot` (
   `date` datetime NOT NULL,
   `open` int unsigned NOT NULL,
