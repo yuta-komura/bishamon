@@ -18,13 +18,13 @@ def add_rsi(df: pd.DataFrame, value: int, use_columns: str) -> pd.DataFrame:
 
 def add_sma(df: pd.DataFrame, value: int, use_columns: str) -> pd.DataFrame:
     price_df = df[use_columns]
-    df["sma{value}".format(value=value)] = price_df.rolling(value).mean()
+    df["ma{value}".format(value=value)] = price_df.rolling(value).mean()
     return df
 
 
 def add_ema(df: pd.DataFrame, value: int, use_columns: str) -> pd.DataFrame:
     price_df = df[use_columns]
     sma = price_df.rolling(value).mean()[:value]
-    df["ema{value}".format(value=value)] = \
+    df["ma{value}".format(value=value)] = \
         pd.concat([sma, price_df[value:]]).ewm(span=value, adjust=False).mean()
     return df
