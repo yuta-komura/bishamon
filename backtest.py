@@ -118,25 +118,27 @@ basis = indicator.add_rsi(df=basis, value=rsi1, use_columns="perp_price")
 basis = indicator.add_ema(df=basis, value=ma_short, use_columns="perp_price")
 basis = indicator.add_ema(df=basis, value=ma_long, use_columns="perp_price")
 
-# basis = basis[basis["date"].between("2021-7-1 08:00:00", "2099-12-31")]
-# basis = basis.reset_index(drop=True)
-
 basis = basis[basis["date"].dt.minute
               .isin([
-                  analysis_from_minutes1,
-                  analysis_to_minutes1,
-                  entry_minutes1,
-                  close_minutes1,
-                  analysis_from_minutes2,
-                  analysis_to_minutes2,
-                  entry_minutes2,
-                  close_minutes2,
-                  analysis_from_minutes3,
-                  analysis_to_minutes3,
-                  entry_minutes3,
-                  close_minutes3
-              ])]
+                    analysis_from_minutes1,
+                    analysis_to_minutes1,
+                    entry_minutes1,
+                    close_minutes1,
+                    analysis_from_minutes2,
+                    analysis_to_minutes2,
+                    entry_minutes2,
+                    close_minutes2,
+                    analysis_from_minutes3,
+                    analysis_to_minutes3,
+                    entry_minutes3,
+                    close_minutes3
+                    ])]
 
+# basis = basis[basis["date"].between("2021-7-1 00:00:00", "2099-12-31")]
+# basis = basis.reset_index(drop=True)
+
+
+not_executions = basis.copy()
 profits = []
 asset_flow = []
 for i in range(len(basis)):
@@ -173,6 +175,11 @@ for i in range(len(basis)):
                             profits.append(profit)
                             asset += profit
                             asset_flow.append(asset)
+
+                            not_executions = \
+                                not_executions[not_executions["date"] != entry["date"]]
+                            not_executions = \
+                                not_executions[not_executions["date"] != close["date"]]
             continue
 
         if data_price["date"].minute == analysis_to_minutes2:
@@ -196,6 +203,11 @@ for i in range(len(basis)):
                             profits.append(profit)
                             asset += profit
                             asset_flow.append(asset)
+
+                            not_executions = \
+                                not_executions[not_executions["date"] != entry["date"]]
+                            not_executions = \
+                                not_executions[not_executions["date"] != close["date"]]
             continue
 
         if data_price["date"].minute == analysis_to_minutes3:
@@ -219,6 +231,11 @@ for i in range(len(basis)):
                             profits.append(profit)
                             asset += profit
                             asset_flow.append(asset)
+
+                            not_executions = \
+                                not_executions[not_executions["date"] != entry["date"]]
+                            not_executions = \
+                                not_executions[not_executions["date"] != close["date"]]
             continue
     except Exception as e:
         print(e)
@@ -244,7 +261,9 @@ if pc:
 start_date = basis.iloc[0]["date"]
 finish_date = basis.iloc[len(basis) - 1]["date"]
 
-print(basis)
+executions = basis[~basis["date"].isin(not_executions["date"])]
+executions = executions.reset_index(drop=True)
+print(executions)
 print("")
 
 print("parameter1 : ")
@@ -277,7 +296,7 @@ if pc:
 if ic:
     print("ic", math.round_down(ic, -2), " ")
 
-print("trading回数", len(profits))
+print("trading回数", int(len(executions) / 2))
 
 fig = plt.figure(figsize=(24, 12), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
