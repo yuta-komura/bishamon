@@ -1,11 +1,13 @@
 import datetime
 import sys
+import traceback
 from pprint import pprint
 
 import pytz
 import requests
 
 from lib import repository
+from lib.mysql import MySQL
 
 
 def str_to_datetime(str_date: str):
@@ -17,8 +19,8 @@ def str_to_datetime(str_date: str):
 
 database = "tradingbot"
 
-symbol_type = "SPOT"
-# symbol_type = "PERP"
+# symbol_type = "SPOT"
+symbol_type = "PERP"
 
 period_id = "1MIN"
 
@@ -72,19 +74,29 @@ while True:
             del keys[0]
             continue
 
-    try:
-        for data in response:
-            date = str_to_datetime(data["time_period_start"])
-            open = int(data["price_open"])
-            high = int(data["price_high"])
-            low = int(data["price_low"])
-            close = int(data["price_close"])
-            volume = str(data["volume_traded"])
-            sql = f"insert into {insert_table} values('{date}',{open},{high},{low},{close},'{volume}')"
-            repository.execute(database=database, sql=sql, log=False)
+    conn = MySQL(database=database).conn
+    cur = conn.cursor()
 
-    except Exception as e:
-        print(e)
-        pprint(data)
+    for data in response:
+        date = str_to_datetime(data["time_period_start"])
+        open = int(data["price_open"])
+        high = int(data["price_high"])
+        low = int(data["price_low"])
+        close = int(data["price_close"])
+        volume = str(data["volume_traded"])
+
+        sql = f"insert into {insert_table} values('{date}',{open},{high},{low},{close},'{volume}')"
+
+        try:
+            cur.execute(sql)
+            print(sql)
+        except Exception as e:
+            print(e)
+            pprint(data)
+            print(traceback.format_exc())
+
+    conn.commit()
+    conn.close()
+    cur.close()
 
     before_time_start = time_start
