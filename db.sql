@@ -44,6 +44,16 @@ CREATE TABLE `ohlcv_1min_bitflyer_perp` (
   KEY `ohlcv_1min_bitflyer_perp1` (`date`)
 );
 
+CREATE TABLE `ohlcv_1min_binance_perp` (
+  `date` datetime NOT NULL,
+  `open` decimal(65, 30) unsigned NOT NULL,
+  `high` decimal(65, 30) unsigned NOT NULL,
+  `low` decimal(65, 30) unsigned NOT NULL,
+  `close` decimal(65, 30) unsigned NOT NULL,
+  `volume` decimal(65, 30) unsigned NOT NULL,
+  KEY `ohlcv_1min_binance_perp1` (`date`)
+);
+
 CREATE TABLE `quotes_bitflyer_perp` (
   `date` datetime(6) NOT NULL,
   `ask_price` int unsigned NOT NULL,
