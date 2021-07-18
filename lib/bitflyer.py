@@ -46,7 +46,7 @@ class API:
                 time.sleep(1)
             except Exception:
                 message.error(traceback.format_exc())
-                time.sleep(3)
+                time.sleep(10)
 
     def close(self):
         message.info("close start")
@@ -80,7 +80,7 @@ class API:
                 time.sleep(1)
             except Exception:
                 message.error(traceback.format_exc())
-                time.sleep(3)
+                time.sleep(10)
 
     def __reverse_side(self, side):
         if side == "BUY":
@@ -109,7 +109,7 @@ class API:
             message.info("sendchildorder", sendchildorder_content)
         except Exception:
             message.error(traceback.format_exc())
-            time.sleep(3)
+            time.sleep(10)
 
     @staticmethod
     def __order_normalize(side, size, price):
@@ -133,7 +133,7 @@ class API:
             except Exception:
                 message.error(traceback.format_exc())
                 message.error("collateral", collateral)
-                time.sleep(3)
+                time.sleep(10)
 
     def __get_order_price(self, side):
         ticker = self.__get_best_price()
@@ -174,7 +174,7 @@ class API:
             except Exception:
                 message.error(traceback.format_exc())
                 message.error("positions", positions)
-                time.sleep(3)
+                time.sleep(10)
 
     def __get_best_price(self):
         ticker = None
@@ -187,14 +187,14 @@ class API:
             except Exception:
                 message.error(traceback.format_exc())
                 message.error("ticker", ticker)
-                time.sleep(3)
+                time.sleep(10)
 
     def __get_ticker(self):
         try:
             return self.api.ticker(product_code=self.PRODUCT_CODE)
         except Exception:
             message.error(traceback.format_exc())
-            time.sleep(3)
+            time.sleep(10)
 
     def get_sfd_ratio(self):
         try:
@@ -207,7 +207,7 @@ class API:
             message.error(traceback.format_exc())
             message.error("btcjpy_ltp", btcjpy_ltp)
             message.error("fxbtcjpy_ltp", fxbtcjpy_ltp)
-            time.sleep(3)
+            time.sleep(10)
 
     def __cancelallchildorders(self):
         self.api.cancelallchildorders(product_code=self.PRODUCT_CODE)
