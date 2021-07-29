@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from lib import bitflyer, message, repository
+from lib import bitflyer, log, repository
 from lib.config import Anomaly, Bitflyer, Trading
 
 
@@ -62,7 +62,7 @@ def get_historical_price():
 
 
 def save_entry(side):
-    message.info(side, "entry")
+    log.info(side, "entry")
     while True:
         try:
             sql = "update entry set side='{side}'".format(side=side)

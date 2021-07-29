@@ -4,7 +4,7 @@ import traceback
 
 import pandas as pd
 
-from lib import message
+from lib import log
 from lib.mysql import MySQL
 
 data_start_date = datetime.datetime(2019, 10, 1)
@@ -38,7 +38,7 @@ while True:
             cur.execute(sql)
             print(sql)
         except Exception:
-            message.error(traceback.format_exc())
+            log.error(traceback.format_exc())
 
     conn.commit()
     conn.close()

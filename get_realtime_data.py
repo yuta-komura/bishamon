@@ -95,7 +95,7 @@ class bFwebsocket(object):
                         size = str(r["size"])
                         sql = f"insert into execution_history values (null,'{date}','{side}',{price},'{size}')"
                         repository.execute(
-                            database=database, sql=sql, log=False)
+                            database=database, sql=sql, use_log=False)
                     except Exception:
                         pass
 

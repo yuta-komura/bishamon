@@ -2,7 +2,7 @@ import traceback
 
 import pandas as pd
 
-from lib import message
+from lib import log
 from lib.mysql import MySQL
 
 
@@ -12,12 +12,12 @@ def read_sql(database: str, sql: str) -> pd.DataFrame:
         result = pd.read_sql(sql, conn)
         return result
     except Exception:
-        message.error(traceback.format_exc())
+        log.error(traceback.format_exc())
     finally:
         conn.close()
 
 
-def execute(database: str, sql: str, log=True, write=True) -> tuple:
+def execute(database: str, sql: str, use_log=True, write=True) -> tuple:
     conn = MySQL(database=database).conn
     cur = conn.cursor()
     try:
@@ -29,12 +29,12 @@ def execute(database: str, sql: str, log=True, write=True) -> tuple:
         else:
             conn.commit()
             if write:
-                if log:
-                    message.info(sql)
+                if use_log:
+                    log.info(sql)
                 else:
                     print(sql)
     except Exception:
-        message.error(traceback.format_exc())
+        log.error(traceback.format_exc())
     finally:
         conn.commit()
         conn.close()

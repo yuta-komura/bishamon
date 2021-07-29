@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pybitflyer
 
-from lib import math, message, repository
+from lib import log, math, repository
 
 
 class API:
@@ -16,9 +16,9 @@ class API:
         self.DATABASE = "tradingbot"
 
     def order(self, side):
-        message.info(side, "order start")
-        while True:
-            try:
+        log.info(side, "order start")
+        try:
+            while True:
                 self.__cancelallchildorders()
 
                 position = self.__get_position()
@@ -38,32 +38,31 @@ class API:
                 has_completed_order = size < 0.01 \
                     or self.__has_changed_side(side=side)
                 if has_completed_order:
-                    message.info(side, "order complete")
+                    log.info(side, "order complete")
                     return
 
                 self.__send_order(side=side, size=size, price=price)
 
                 time.sleep(1)
-            except Exception:
-                message.error(traceback.format_exc())
-                time.sleep(10)
+        except Exception:
+            log.error(traceback.format_exc())
 
     def close(self):
-        message.info("close start")
-        while True:
-            try:
+        log.info("close start")
+        try:
+            while True:
                 self.__cancelallchildorders()
 
                 position = self.__get_position()
 
                 has_completed_close = position["size"] < 0.000001
                 if has_completed_close:
-                    message.info("close complete")
+                    log.info("close complete")
                     return
 
                 has_waste_size = 0.000001 <= position["size"] < 0.01
                 if has_waste_size:
-                    message.info("has waste size")
+                    log.info("has waste size")
                     side = position["side"]
                     size = 0.01
                     price = self.__get_order_price(side=side)
@@ -78,9 +77,8 @@ class API:
                 self.__send_order(side=side, size=size, price=price)
 
                 time.sleep(1)
-            except Exception:
-                message.error(traceback.format_exc())
-                time.sleep(10)
+        except Exception:
+            log.error(traceback.format_exc())
 
     def __reverse_side(self, side):
         if side == "BUY":
@@ -106,10 +104,9 @@ class API:
             sendchildorder_content = \
                 "side={side}, size={size}, price={price}"\
                 .format(side=side, size=size, price=price)
-            message.info("sendchildorder", sendchildorder_content)
+            log.info("sendchildorder", sendchildorder_content)
         except Exception:
-            message.error(traceback.format_exc())
-            time.sleep(10)
+            log.error(traceback.format_exc())
 
     @staticmethod
     def __order_normalize(side, size, price):
@@ -119,21 +116,19 @@ class API:
 
     def __get_order_size(self, price, position_size):
         collateral = None
-        while True:
-            try:
-                collateral = self.api.getcollateral()
-                collateral = Decimal(str(collateral["collateral"]))
-                price = Decimal(str(price))
-                position_size = Decimal(str(position_size))
+        try:
+            collateral = self.api.getcollateral()
+            collateral = Decimal(str(collateral["collateral"]))
+            price = Decimal(str(price))
+            position_size = Decimal(str(position_size))
 
-                valid_size = (collateral * self.LEVERAGE) / price
-                size = valid_size - position_size
-                size = size - Decimal("0.000001")
-                return size
-            except Exception:
-                message.error(traceback.format_exc())
-                message.error("collateral", collateral)
-                time.sleep(10)
+            valid_size = (collateral * self.LEVERAGE) / price
+            size = valid_size - position_size
+            size = size - Decimal("0.000001")
+            return size
+        except Exception:
+            log.error(traceback.format_exc())
+            log.error("collateral", collateral)
 
     def __get_order_price(self, side):
         ticker = self.__get_best_price()
@@ -159,42 +154,37 @@ class API:
 
     def __get_position(self):
         positions = None
-        while True:
-            try:
-                positions = \
-                    self.api.getpositions(product_code=self.PRODUCT_CODE)
+        try:
+            positions = \
+                self.api.getpositions(product_code=self.PRODUCT_CODE)
 
-                side = None
-                size = Decimal("0")
-                for position in positions:
-                    side = position["side"]
-                    size += Decimal(str(position["size"]))
+            side = None
+            size = Decimal("0")
+            for position in positions:
+                side = position["side"]
+                size += Decimal(str(position["size"]))
 
-                return {"side": side, "size": size}
-            except Exception:
-                message.error(traceback.format_exc())
-                message.error("positions", positions)
-                time.sleep(10)
+            return {"side": side, "size": size}
+        except Exception:
+            log.error(traceback.format_exc())
+            log.error("positions", positions)
 
     def __get_best_price(self):
         ticker = None
-        while True:
-            try:
-                ticker = self.__get_ticker()
-                best_ask = int(ticker["best_ask"])
-                best_bid = int(ticker["best_bid"])
-                return {"best_ask": best_ask, "best_bid": best_bid}
-            except Exception:
-                message.error(traceback.format_exc())
-                message.error("ticker", ticker)
-                time.sleep(10)
+        try:
+            ticker = self.__get_ticker()
+            best_ask = int(ticker["best_ask"])
+            best_bid = int(ticker["best_bid"])
+            return {"best_ask": best_ask, "best_bid": best_bid}
+        except Exception:
+            log.error(traceback.format_exc())
+            log.error("ticker", ticker)
 
     def __get_ticker(self):
         try:
             return self.api.ticker(product_code=self.PRODUCT_CODE)
         except Exception:
-            message.error(traceback.format_exc())
-            time.sleep(10)
+            log.error(traceback.format_exc())
 
     def get_sfd_ratio(self):
         try:
@@ -204,10 +194,9 @@ class API:
             sfd_ratio = float(math.round_down(sfd_ratio, -2))
             return sfd_ratio
         except Exception:
-            message.error(traceback.format_exc())
-            message.error("btcjpy_ltp", btcjpy_ltp)
-            message.error("fxbtcjpy_ltp", fxbtcjpy_ltp)
-            time.sleep(10)
+            log.error(traceback.format_exc())
+            log.error("btcjpy_ltp", btcjpy_ltp)
+            log.error("fxbtcjpy_ltp", fxbtcjpy_ltp)
 
     def __cancelallchildorders(self):
         self.api.cancelallchildorders(product_code=self.PRODUCT_CODE)
@@ -218,11 +207,11 @@ class API:
             entry = \
                 repository.read_sql(database=self.DATABASE, sql=sql)
             if entry.empty:
-                message.error("entry empty")
+                log.error("entry empty")
                 return True
             latest_side = entry.at[0, "side"]
             if latest_side != side:
-                message.info("change side from", side, "to", latest_side)
+                log.info("change side from", side, "to", latest_side)
                 return True
             else:
                 return False

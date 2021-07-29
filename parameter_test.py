@@ -1,4 +1,4 @@
-from lib import math, message
+from lib import math, log
 from lib import pandas_option as pd_op
 from lib import repository
 
@@ -146,4 +146,4 @@ for z in range(21, 45):
     result_data = result_data.replace("'", "")
     result_data = result_data.replace(",", "")
 
-    message.info(result_data)
+    log.info(result_data)

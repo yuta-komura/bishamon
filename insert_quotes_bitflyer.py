@@ -23,7 +23,7 @@ symbol_id = f"BITFLYERLTNG_{symbol_type}_BTC_JPY"
 url = f"https://rest.coinapi.io/v1/quotes/{symbol_id}/history"
 
 sql = f"truncate {insert_table}"
-repository.execute(database=database, sql=sql, log=False)
+repository.execute(database=database, sql=sql, use_log=False)
 
 sql = "select * from coinapi_key"
 data = repository.read_sql(database=database, sql=sql)
@@ -78,7 +78,7 @@ while True:
             bid_price = int(data["bid_price"])
             bid_size = str(data["bid_size"])
             sql = f"insert into {insert_table} values('{date}',{ask_price},'{ask_size}',{bid_price},'{bid_size}')"
-            repository.execute(database=database, sql=sql, log=False)
+            repository.execute(database=database, sql=sql, use_log=False)
 
     except Exception as e:
         print(e)

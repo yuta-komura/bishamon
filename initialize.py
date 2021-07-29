@@ -1,6 +1,6 @@
 import pybitflyer
 
-from lib import message, repository, stdout
+from lib import log, repository, stdout
 from lib.config import Bitflyer
 from lib.exception import ConfigException
 
@@ -23,7 +23,7 @@ def truncate_table():
 
 
 def insert_data():
-    message.info("initial entry")
+    log.info("initial entry")
     sql = "insert into entry values('CLOSE')"
     repository.execute(database=DATABASE, sql=sql, write=False)
 
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     stdout.AA()
     print("tradingbot bishamon start !!")
 
-    message.info("initialize start")
+    log.info("initialize start")
 
     config_test()
     truncate_table()
     insert_data()
 
-    message.info("initialize complete")
+    log.info("initialize complete")

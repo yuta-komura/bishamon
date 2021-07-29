@@ -1,6 +1,6 @@
 import time
 
-from lib import bitflyer, message, repository
+from lib import bitflyer, log, repository
 from lib.config import Bitflyer
 
 
@@ -10,11 +10,11 @@ def has_changed_side(side):
         entry = \
             repository.read_sql(database=DATABASE, sql=sql)
         if entry.empty:
-            message.warning("entry empty")
+            log.warning("entry empty")
             return True
         latest_side = entry.at[0, "side"]
         if latest_side != side:
-            message.info("change side from", side, "to", latest_side)
+            log.info("change side from", side, "to", latest_side)
             return True
         else:
             return False
