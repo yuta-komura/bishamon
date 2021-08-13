@@ -1,40 +1,11 @@
 import datetime
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from lib import math
 from lib import pandas_option as pd_op
 from lib import repository
-
-
-def calc_profit(analysis_from, analysis_to, entry, close):
-
-    to_price = analysis_to["perp_price"]
-    fr_price = analysis_from["perp_price"]
-    entry_price = entry["perp_price"]
-    close_price = close["perp_price"]
-
-    entry_sfd = entry["sfd"]
-
-    if (to_price - fr_price) < 0:
-        if entry_sfd >= 5:
-            return 0
-        entry_price += entry_price * (spread_ratio / 100)
-        close_price -= close_price * (spread_ratio / 100)
-        amount = (asset * leverage) / entry_price
-        profit = (amount * close_price) - \
-            (asset * leverage)
-        print("買い", entry["date"])
-    else:
-        if entry_sfd <= -5:
-            return 0
-        entry_price -= entry_price * (spread_ratio / 100)
-        close_price += close_price * (spread_ratio / 100)
-        amount = (asset * leverage) / entry_price
-        profit = (asset * leverage) - \
-            (amount * close_price)
-        print("売り", entry["date"])
-    return profit
 
 
 def add_price_comma(price: int) -> str:
@@ -53,39 +24,29 @@ def add_price_comma(price: int) -> str:
     return price
 
 
+bet = 50000
+leverage = 2
+
+do_ave_mode = False
+
 database = "tradingbot"
 pd_op.display_max_columns()
 pd_op.display_round_down()
 
-insert_asset = 50000
-# spread_ratio = 0.0016  # 0.0008 * 2
-spread_ratio = 0
-MENTAINANCE_HOUR = [3, 4, 5, 6, 7]
-do_deposit = True
+p1_fr = 51
+p1_to = 0
+p1_entry = 1
+p1_close = 18
 
-analysis_from_minutes1 = 51
-analysis_to_minutes1 = 0
-entry_minutes1 = 1
-close_minutes1 = 18
+p2_fr = 1
+p2_to = 13
+p2_entry = 20
+p2_close = 36
 
-analysis_from_minutes2 = 1
-analysis_to_minutes2 = 13
-entry_minutes2 = 20
-close_minutes2 = 36
-
-analysis_from_minutes3 = 17
-analysis_to_minutes3 = 29
-entry_minutes3 = 45
-close_minutes3 = 49
-
-initial_profit = insert_asset
-leverage = 2
-asset = initial_profit
-
-sql = f"""
+sql = """
         select
             perp.date,
-            perp.open as perp_price,
+            perp.open as price,
             (perp.open / spot.open - 1) * 100 as sfd
         from
             ohlcv_1min_bitflyer_perp perp
@@ -93,137 +54,136 @@ sql = f"""
                 ohlcv_1min_bitflyer_spot spot
             on  perp.date = spot.date
         where
-            (
-            minute(perp.date) = {analysis_from_minutes1}
-            or minute(perp.date) = {analysis_to_minutes1}
-            or minute(perp.date) = {entry_minutes1}
-            or minute(perp.date) = {close_minutes1}
-
-            or minute(perp.date) = {analysis_from_minutes2}
-            or minute(perp.date) = {analysis_to_minutes2}
-            or minute(perp.date) = {entry_minutes2}
-            or minute(perp.date) = {close_minutes2}
-
-            or minute(perp.date) = {analysis_from_minutes3}
-            or minute(perp.date) = {analysis_to_minutes3}
-            or minute(perp.date) = {entry_minutes3}
-            or minute(perp.date) = {close_minutes3}
-            )
-            # and perp.date between '2021-06-01 00:00:00' and '2099-04-30 00:00:00'
+            perp.date between '2021-07-12 00:00:00' and '2021-08-10 19:00:00'
         order by
             date
         """
-data_prices = repository.read_sql(database=database, sql=sql)
+data = repository.read_sql(database=database, sql=sql)
 
-profits = []
+p1 = data.copy()
+p1_frs = p1[p1["date"].dt.minute == p1_fr]
+p1_frs = p1_frs.copy()
+p1_frs = p1_frs[["date", "price"]]
+p1_frs["date"] = p1_frs["date"].dt.floor("H")
+p1_frs["date"] = p1_frs["date"] + datetime.timedelta(hours=1)
+
+p1_tos = p1[p1["date"].dt.minute == p1_to]
+p1_tos = p1_tos.copy()
+p1_tos = p1_tos[["date", "price"]]
+p1_tos["date"] = p1_tos["date"].dt.floor("H")
+
+if do_ave_mode:
+    p1_entries = p1[(p1["date"].dt.minute >= p1_entry) &
+                    (p1["date"].dt.minute < p1_close)]
+    p1_entries = p1_entries.copy()
+    p1_entries["date"] = p1_entries["date"].dt.floor("H")
+    p1_entries = p1_entries.groupby(pd.Grouper(key="date", freq="1h")).mean()
+    p1_entries = p1_entries.reset_index()
+else:
+    p1_entries = p1[p1["date"].dt.minute == p1_entry]
+    p1_entries = p1_entries.copy()
+    p1_entries["date"] = p1_entries["date"].dt.floor("H")
+
+p1_closes = p1[p1["date"].dt.minute == p1_close]
+p1_closes = p1_closes.copy()
+p1_closes = p1_closes[["date", "price"]]
+p1_closes["date"] = p1_closes["date"].dt.floor("H")
+
+p1_tradings = pd.merge(p1_tos, p1_frs, on="date", how="inner")
+p1_tradings["side"] = p1_tradings["price_x"] - p1_tradings["price_y"] < 0
+p1_tradings["side"] = ["BUY" if s else "SELL" for s in p1_tradings["side"]]
+p1_tradings = p1_tradings[["date", "side"]]
+p1_tradings = pd.merge(p1_tradings, p1_entries, on="date", how="inner")
+p1_tradings = p1_tradings.rename(columns={"price": "entry_price"})
+p1_tradings = pd.merge(p1_tradings, p1_closes, on="date", how="inner")
+p1_tradings = p1_tradings.rename(columns={"price": "close_price"})
+
+p2 = data.copy()
+p2_frs = p2[p2["date"].dt.minute == p2_fr]
+p2_frs = p2_frs.copy()
+p2_frs = p2_frs[["date", "price"]]
+p2_frs["date"] = p2_frs["date"].dt.floor("H")
+
+p2_tos = p2[p2["date"].dt.minute == p2_to]
+p2_tos = p2_tos.copy()
+p2_tos = p2_tos[["date", "price"]]
+p2_tos["date"] = p2_tos["date"].dt.floor("H")
+
+if do_ave_mode:
+    p2_entries = p2[(p2["date"].dt.minute >= p2_entry) &
+                    (p2["date"].dt.minute < p2_close)]
+    p2_entries = p2_entries.copy()
+    p2_entries["date"] = p2_entries["date"].dt.floor("H")
+    p2_entries = p2_entries.groupby(pd.Grouper(key="date", freq="1h")).mean()
+    p2_entries = p2_entries.reset_index()
+else:
+    p2_entries = p2[p2["date"].dt.minute == p2_entry]
+    p2_entries = p2_entries.copy()
+    p2_entries["date"] = p2_entries["date"].dt.floor("H")
+
+p2_closes = p2[p2["date"].dt.minute == p2_close]
+p2_closes = p2_closes.copy()
+p2_closes = p2_closes[["date", "price"]]
+p2_closes["date"] = p2_closes["date"].dt.floor("H")
+
+p2_tradings = pd.merge(p2_tos, p2_frs, on="date", how="inner")
+p2_tradings["side"] = p2_tradings["price_x"] - p2_tradings["price_y"] < 0
+p2_tradings["side"] = ["BUY" if s else "SELL" for s in p2_tradings["side"]]
+p2_tradings = p2_tradings[["date", "side"]]
+p2_tradings = pd.merge(p2_tradings, p2_entries, on="date", how="inner")
+p2_tradings = p2_tradings.rename(columns={"price": "entry_price"})
+p2_tradings = pd.merge(p2_tradings, p2_closes, on="date", how="inner")
+p2_tradings = p2_tradings.rename(columns={"price": "close_price"})
+
+tradings = p1_tradings.append(p2_tradings)
+tradings = tradings[~((tradings["date"].dt.hour >= 3) &
+                      (tradings["date"].dt.hour <= 7))]
+tradings = tradings.sort_values("date")
+
+tradings = tradings[~((tradings["side"] == "SELL") & (tradings["sfd"] <= -5))]
+tradings = tradings[~((tradings["side"] == "BUY") & (tradings["sfd"] >= 5))]
+tradings = tradings[["date", "side", "entry_price", "close_price"]]
+tradings["amount"] = bet / tradings["entry_price"]
+
+tradings_buy = tradings[tradings["side"] == "BUY"]
+tradings_buy = tradings_buy.copy()
+tradings_buy["profit"] = (
+    tradings_buy["amount"] * tradings_buy["close_price"]) - bet
+
+tradings_sell = tradings[tradings["side"] == "SELL"]
+tradings_sell = tradings_sell.copy()
+tradings_sell["profit"] = bet - \
+    (tradings_sell["amount"] * tradings_sell["close_price"])
+
+result = tradings_buy.append(tradings_sell)
+result = result[["date", "profit"]]
+result = result.sort_values("date")
+result = result.reset_index(drop=True)
+
+wins = result["profit"][result["profit"] > 0]
+loses = result["profit"][result["profit"] < 0]
+
+profit = int(result["profit"].sum() * leverage)
+pf = wins.sum() / -(loses.sum())
+pf = math.round_down(pf, -2)
+wp = len(wins) / (len(wins) + len(loses)) * 100
+wp = math.round_down(wp, 0)
+cnt = len(result)
+
+start_date = result.iloc[0]["date"]
+end_date = result.iloc[len(result) - 1]["date"]
+
+print(start_date, "～", end_date)
+print("総利益", add_price_comma(profit), "円")
+print("pf", pf)
+print("wp", wp)
+print("cnt", cnt)
+
 asset_flow = []
-for i in range(len(data_prices)):
-
-    try:
-        before_data_month = data_prices.iloc[i - 1]["date"].month
-        now_data_month = data_prices.iloc[i]["date"].month
-        if do_deposit and before_data_month != now_data_month:
-            asset += insert_asset
-
-        data_price = data_prices.iloc[i]
-
-        if data_price["date"].hour in MENTAINANCE_HOUR:
-            continue
-
-        if data_price["date"].minute == analysis_to_minutes1:
-            if i - 1 > 0:
-                analysis_from = data_prices.iloc[i - 1]
-                analysis_to = data_price
-                entry = data_prices.iloc[i + 1]
-                close = data_prices.iloc[i + 4]
-
-                if (analysis_from["date"] + datetime.timedelta(hours=1)).hour == analysis_to["date"].hour \
-                        and analysis_to["date"].hour == entry["date"].hour \
-                        and entry["date"].hour == close["date"].hour:
-                    if analysis_from["date"].minute == analysis_from_minutes1 \
-                            and entry["date"].minute == entry_minutes1 \
-                            and close["date"].minute == close_minutes1:
-
-                        profit = calc_profit(
-                            analysis_from, analysis_to, entry, close)
-
-                        if profit != 0:
-                            profits.append(profit)
-                            asset += profit
-                            asset_flow.append(asset)
-            continue
-
-        if data_price["date"].minute == analysis_to_minutes2:
-            if i - 1 > 0:
-                analysis_from = data_prices.iloc[i - 1]
-                analysis_to = data_price
-                entry = data_prices.iloc[i + 3]
-                close = data_prices.iloc[i + 5]
-
-                if (analysis_from["date"]).hour == analysis_to["date"].hour \
-                        and analysis_to["date"].hour == entry["date"].hour \
-                        and entry["date"].hour == close["date"].hour:
-                    if analysis_from["date"].minute == analysis_from_minutes2 \
-                            and entry["date"].minute == entry_minutes2 \
-                            and close["date"].minute == close_minutes2:
-
-                        profit = calc_profit(
-                            analysis_from, analysis_to, entry, close)
-
-                        if profit != 0:
-                            profits.append(profit)
-                            asset += profit
-                            asset_flow.append(asset)
-            continue
-
-    except Exception as e:
-        print(e)
-
-wins = []
-loses = []
-for i in range(len(profits)):
-    if profits[i] > 0:
-        wins.append(profits[i])
-    elif profits[i] < 0:
-        loses.append(profits[i])
-
-pf = None
-if sum(loses) != 0:
-    pf = abs(sum(wins) / sum(loses))
-pc = None
-if len(wins) + len(loses) != 0:
-    pc = len(wins) / (len(wins) + len(loses))
-ic = None
-if pc:
-    ic = (2 * pc) - 1
-
-start_date = data_prices.iloc[0]["date"]
-finish_date = data_prices.iloc[len(data_prices) - 1]["date"]
-
-print("parameter1 : ")
-print(f"analysis_from_minutes1 {analysis_from_minutes1}")
-print(f"analysis_to_minutes1 {analysis_to_minutes1}")
-print(f"entry_minutes1 {entry_minutes1}")
-print(f"close_minutes1 {close_minutes1}")
-print("")
-
-print("parameter2 : ")
-print(f"analysis_from_minutes2 {analysis_from_minutes2}")
-print(f"analysis_to_minutes2 {analysis_to_minutes2}")
-print(f"entry_minutes2 {entry_minutes2}")
-print(f"close_minutes2 {close_minutes2}")
-print("")
-
-print(start_date, "〜", finish_date, " ")
-print("総利益", add_price_comma(int(sum(profits))), "円  ")
-if pf:
-    print("pf", math.round_down(pf, -2), " ")
-if pc:
-    print("勝率", math.round_down(pc * 100, 0), "%", " ")
-if ic:
-    print("ic", math.round_down(ic, -2), " ")
-
-print("trading回数", len(profits))
+p = 0
+for i in range(len(result)):
+    p += result.iloc[i]["profit"]
+    asset_flow.append(p)
 
 fig = plt.figure(figsize=(24, 12), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
