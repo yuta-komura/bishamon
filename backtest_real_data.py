@@ -4,7 +4,7 @@ import pandas as pd
 from lib import math
 from lib import pandas_option as pd_op
 
-report_path = "/mnt/c/Users/esfgs/bishamon/document/bitflyer/report/Lightning_TradeHistory_20210810.xls"
+report_path = "/mnt/c/Users/esfgs/bishamon/document/bitflyer/report/Lightning_TradeHistory_20210831.xls"
 
 
 def add_price_comma(price: int) -> str:
@@ -72,7 +72,7 @@ report["date"] = report["date"].dt.strftime("%Y-%m-%d %H:%M:00")
 report["date"] = pd.to_datetime(report["date"])
 report.loc[report["side"] == "買い", "side"] = "BUY"
 report.loc[report["side"] == "売り", "side"] = "SELL"
-report = report[report["date"] >= '2021-07-12 00:00:00']
+# report = report[report["date"] >= '2021-07-12 00:00:00']
 report = report.sort_values("date")
 report = report.reset_index(drop=True)
 
@@ -97,37 +97,47 @@ tradings_sell = tradings_sell.copy()
 tradings_sell["profit"] = bet - \
     (tradings_sell["amount"] * tradings_sell["close_price"])
 
-result = tradings_buy.append(tradings_sell)
-result = result[["date", "profit"]]
-result = result.sort_values("date")
-result = result.reset_index(drop=True)
 
-wins = result["profit"][result["profit"] > 0]
-loses = result["profit"][result["profit"] < 0]
+for z in range(0, 24):
 
-profit = int(result["profit"].sum() * leverage)
-pf = wins.sum() / -(loses.sum())
-pf = math.round_down(pf, -2)
-wp = len(wins) / (len(wins) + len(loses)) * 100
-wp = math.round_down(wp, 0)
-cnt = len(result)
+    if 3 <= z <= 7:
+        continue
 
-start_date = result.iloc[0]["date"]
-end_date = result.iloc[len(result) - 1]["date"]
+    result = tradings_buy.append(tradings_sell)
+    result = result[["date", "profit"]]
+    result = result.sort_values("date")
+    result = result.reset_index(drop=True)
+    result = result[result["date"].dt.hour == z]
 
-print(start_date, "～", end_date)
-print("総利益", add_price_comma(profit), "円")
-print("pf", pf)
-print("wp", wp)
-print("cnt", cnt)
+    wins = result["profit"][result["profit"] > 0]
+    loses = result["profit"][result["profit"] < 0]
 
-asset_flow = []
-p = 0
-for i in range(len(result)):
-    p += result.iloc[i]["profit"]
-    asset_flow.append(p)
+    profit = int(result["profit"].sum() * leverage)
+    pf = wins.sum() / -(loses.sum())
+    pf = math.round_down(pf, -2)
+    wp = len(wins) / (len(wins) + len(loses)) * 100
+    wp = math.round_down(wp, 0)
+    cnt = len(result)
 
-fig = plt.figure(figsize=(24, 12), dpi=50)
-ax1 = fig.add_subplot(1, 1, 1)
-ax1.plot(list(range(len(asset_flow))), asset_flow)
-fig.savefig("backtest_real_data.png")
+    start_date = result.iloc[0]["date"]
+    end_date = result.iloc[len(result) - 1]["date"]
+
+    print("----------------------------------")
+    print(z, "時")
+
+    print(start_date, "～", end_date)
+    print("総利益", add_price_comma(profit), "円")
+    print("pf", pf)
+    print("wp", wp)
+    print("cnt", cnt)
+
+    # asset_flow = []
+    # p = 0
+    # for i in range(len(result)):
+    #     p += result.iloc[i]["profit"]
+    #     asset_flow.append(p)
+
+    # fig = plt.figure(figsize=(24, 12), dpi=50)
+    # ax1 = fig.add_subplot(1, 1, 1)
+    # ax1.plot(list(range(len(asset_flow))), asset_flow)
+    # fig.savefig(f"{z}.png")

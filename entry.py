@@ -1,11 +1,10 @@
 import datetime
-import time
 
-from lib import bitflyer, log, repository
+from lib import bitflyer, indicator, log, repository
 from lib.config import Anomaly, Bitflyer, Trading
 
 
-def can_trading(side):
+def non_sfd_fee(side):
     sfd_ratio = bitflyer.get_sfd_ratio()
     if (side == "BUY" and sfd_ratio >= 5) or (
             side == "SELL" and sfd_ratio <= -5):
@@ -15,7 +14,7 @@ def can_trading(side):
 
 
 def reduce_execution_history():
-    date = datetime.datetime.now()
+    date = datetime.datetime.now() - datetime.timedelta(hours=1)
     year = date.year
     month = date.month
     day = date.day
@@ -58,7 +57,9 @@ def get_historical_price():
             order by
                 date
             """
-    return repository.read_sql(database=DATABASE, sql=sql)
+    df = repository.read_sql(database=DATABASE, sql=sql)
+    df = indicator.add_rsi(df=df, value=1, use_columns="price")
+    return df
 
 
 def save_entry(side):
@@ -87,24 +88,20 @@ DATABASE = "tradingbot"
 has_contract = False
 while True:
 
-    date = datetime.datetime.now()
+    reduce_execution_history()
+    hp = get_historical_price()
+    if hp.empty:
+        break
+    latest = hp.iloc[len(hp) - 1]
+    date = latest["date"]
     hour = date.hour
     minute = date.minute
 
     if hour in MENTAINANCE_HOUR:
-        reduce_execution_history()
-        time.sleep(1)
         continue
 
     for i in range(len(ENTRY_MINUTE)):
         if minute == ENTRY_MINUTE[i] and not has_contract:
-
-            hp = get_historical_price()
-
-            reduce_execution_history()
-
-            if hp.empty:
-                break
 
             fr_recorde = hp[hp["date"].dt.minute == ANALYSIS_FROM_MINUTE[i]]
             if fr_recorde.empty:
@@ -120,10 +117,14 @@ while True:
 
             if (to_price - fr_price) < 0:
                 side = "BUY"
+                if not latest["rsi"] < 50:
+                    break
             else:
                 side = "SELL"
+                if not latest["rsi"] > 50:
+                    break
 
-            if can_trading(side=side):
+            if non_sfd_fee(side=side):
                 save_entry(side=side)
                 has_contract = True
 

@@ -3,7 +3,7 @@ import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from lib import math
+from lib import indicator, log, math
 from lib import pandas_option as pd_op
 from lib import repository
 
@@ -26,6 +26,7 @@ def add_price_comma(price: int) -> str:
 
 bet = 50000
 leverage = 2
+rsi = 1
 
 do_ave_mode = False
 
@@ -53,12 +54,14 @@ sql = """
             inner join
                 ohlcv_1min_bitflyer_spot spot
             on  perp.date = spot.date
-        where
-            perp.date between '2021-07-12 00:00:00' and '2021-08-10 19:00:00'
+        # where
+            # perp.date between '2021-07-12 00:00:00' and '2021-08-10 19:00:00'
         order by
             date
         """
+
 data = repository.read_sql(database=database, sql=sql)
+data = indicator.add_rsi(df=data, value=rsi, use_columns="price")
 
 p1 = data.copy()
 p1_frs = p1[p1["date"].dt.minute == p1_fr]
@@ -142,23 +145,36 @@ tradings = tradings.sort_values("date")
 
 tradings = tradings[~((tradings["side"] == "SELL") & (tradings["sfd"] <= -5))]
 tradings = tradings[~((tradings["side"] == "BUY") & (tradings["sfd"] >= 5))]
-tradings = tradings[["date", "side", "entry_price", "close_price"]]
+tradings = tradings[["date", "side", "entry_price", "close_price", "rsi"]]
 tradings["amount"] = bet / tradings["entry_price"]
 
 tradings_buy = tradings[tradings["side"] == "BUY"]
+tradings_buy = tradings_buy[tradings_buy["rsi"] < 50]
 tradings_buy = tradings_buy.copy()
 tradings_buy["profit"] = (
     tradings_buy["amount"] * tradings_buy["close_price"]) - bet
 
 tradings_sell = tradings[tradings["side"] == "SELL"]
+tradings_sell = tradings_sell[tradings_sell["rsi"] > 50]
 tradings_sell = tradings_sell.copy()
 tradings_sell["profit"] = bet - \
     (tradings_sell["amount"] * tradings_sell["close_price"])
 
 result = tradings_buy.append(tradings_sell)
 result = result[["date", "profit"]]
+result = result[(result["date"].dt.hour != 8) &
+                (result["date"].dt.hour != 10) &
+                (result["date"].dt.hour != 21) &
+                (result["date"].dt.hour != 3) &
+                (result["date"].dt.hour != 4) &
+                (result["date"].dt.hour != 5) &
+                (result["date"].dt.hour != 6) &
+                (result["date"].dt.hour != 7)]
 result = result.sort_values("date")
 result = result.reset_index(drop=True)
+
+start_date = result["date"].iloc[0]
+end_date = result["date"].iloc[len(result) - 1]
 
 wins = result["profit"][result["profit"] > 0]
 loses = result["profit"][result["profit"] < 0]
@@ -170,14 +186,11 @@ wp = len(wins) / (len(wins) + len(loses)) * 100
 wp = math.round_down(wp, 0)
 cnt = len(result)
 
-start_date = result.iloc[0]["date"]
-end_date = result.iloc[len(result) - 1]["date"]
-
-print(start_date, "～", end_date)
-print("総利益", add_price_comma(profit), "円")
-print("pf", pf)
-print("wp", wp)
-print("cnt", cnt)
+log.info(start_date, "～", end_date)
+log.info("総利益", add_price_comma(profit), "円")
+log.info("pf", pf)
+log.info("wp", wp)
+log.info("cnt", cnt)
 
 asset_flow = []
 p = 0

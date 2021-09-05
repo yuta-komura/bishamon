@@ -12,7 +12,7 @@ def add_rsi(df: pd.DataFrame, value: int, use_columns: str) -> pd.DataFrame:
     up_sum = up.rolling(value).sum()
     down_sum = down.abs().rolling(value).sum()
 
-    df["rsi{value}".format(value=value)] = up_sum / (up_sum + down_sum) * 100
+    df["rsi"] = up_sum / (up_sum + down_sum) * 100
     return df
 
 
