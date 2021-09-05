@@ -28,26 +28,23 @@ close_minutes 36
 
 ---
 
-### 複利パフォーマンス
+### 単利パフォーマンス
 
-※profit を資産に入れて、複利で運用する  
-※システムは複利運用を採用する
+※entry時は資産分賭ける
 
 **initial parameter**：  
 資産 50,000 円  
-月一で 50,000 円 deposit する  
 レバレッジ 2 倍
 
 **backtest result**：  
-2019-10-02 02:29:00 〜 2021-07-11 02:20:00  
-総利益 439,372,642,833 円  
-pf 1.64  
-勝率 55 %  
-ic 0.1  
-trading 回数 20404
+2019-10-02 09:00:00 ～ 2021-09-06 00:00:00  
+総利益 615,830 円  
+pf 1.55  
+勝率 58 %  
+trading回数 9628  
 
 pnl curve  
-<a href="https://imgur.com/35pEOHI"><img src="https://i.imgur.com/35pEOHI.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/J9s9weS"><img src="https://imgur.com/J9s9weS.png" title="source: imgur.com" /></a>
 
 ---
 
