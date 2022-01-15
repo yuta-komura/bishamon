@@ -28,23 +28,34 @@ close_minutes 36
 
 ---
 
-### 単利パフォーマンス
-
-※entry時は資産分賭ける
-
 **initial parameter**：  
 資産 50,000 円  
 レバレッジ 2 倍
 
+### **単利パフォーマンス**
+
+※entry 時は資産分賭ける  
 **backtest result**：  
-2019-10-02 09:00:00 ～ 2021-09-06 00:00:00  
-総利益 615,830 円  
-pf 1.55  
-勝率 58 %  
-trading回数 9628  
+2019-10-02 06:00:00 ～ 2022-01-15 01:00:00  
+総利益 558,576 円  
+pf 1.48  
+勝率 56 %  
+trading 回数 8576
 
 pnl curve  
-<a href="https://imgur.com/J9s9weS"><img src="https://imgur.com/J9s9weS.png" title="source: imgur.com" /></a>
+<a href="https://imgur.com/hHIiP3F"><img src="https://i.imgur.com/hHIiP3F.png" title="source: imgur.com" /></a>
+
+### **複利パフォーマンス**
+
+**backtest result**：  
+2019-10-02 06:00:00 ～ 2022-01-15 01:00:00  
+総利益 1,989,847,419 円  
+pf 1.49  
+勝率 56 %  
+trading 回数 8576
+
+pnl curve  
+<a href="https://imgur.com/JIim5Pj"><img src="https://i.imgur.com/JIim5Pj.png" title="source: imgur.com" /></a>
 
 ---
 

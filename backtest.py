@@ -3,9 +3,27 @@ import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from lib import indicator, log, math
 from lib import pandas_option as pd_op
 from lib import repository
+
+"""
+----------------------------------------------------------
+単利パフォーマンス
+2019-10-02 06:00:00 ～ 2022-01-15 01:00:00
+bet 50,000
+総利益 558,576 円
+pf 1.4849692157844119
+wp 56
+cnt 8576
+----------------------------------------------------------
+複利パフォーマンス
+2019-10-02 06:00:00 ～ 2022-01-15 01:00:00
+initial_bet 50,000
+総利益 1,989,847,419 円
+pf 1.492576362877207
+wp 56
+cnt 8576
+"""
 
 
 def add_price_comma(price: int) -> str:
@@ -26,9 +44,6 @@ def add_price_comma(price: int) -> str:
 
 bet = 50000
 leverage = 2
-rsi = 1
-
-do_ave_mode = False
 
 database = "tradingbot"
 pd_op.display_max_columns()
@@ -55,13 +70,12 @@ sql = """
                 ohlcv_1min_bitflyer_spot spot
             on  perp.date = spot.date
         # where
-            # perp.date between '2021-07-12 00:00:00' and '2021-08-10 19:00:00'
+            # perp.date between '2021-01-01 00:00:00' and '2099-01-01 00:00:00'
         order by
             date
         """
 
 data = repository.read_sql(database=database, sql=sql)
-data = indicator.add_rsi(df=data, value=rsi, use_columns="price")
 
 p1 = data.copy()
 p1_frs = p1[p1["date"].dt.minute == p1_fr]
@@ -75,17 +89,9 @@ p1_tos = p1_tos.copy()
 p1_tos = p1_tos[["date", "price"]]
 p1_tos["date"] = p1_tos["date"].dt.floor("H")
 
-if do_ave_mode:
-    p1_entries = p1[(p1["date"].dt.minute >= p1_entry) &
-                    (p1["date"].dt.minute < p1_close)]
-    p1_entries = p1_entries.copy()
-    p1_entries["date"] = p1_entries["date"].dt.floor("H")
-    p1_entries = p1_entries.groupby(pd.Grouper(key="date", freq="1h")).mean()
-    p1_entries = p1_entries.reset_index()
-else:
-    p1_entries = p1[p1["date"].dt.minute == p1_entry]
-    p1_entries = p1_entries.copy()
-    p1_entries["date"] = p1_entries["date"].dt.floor("H")
+p1_entries = p1[p1["date"].dt.minute == p1_entry]
+p1_entries = p1_entries.copy()
+p1_entries["date"] = p1_entries["date"].dt.floor("H")
 
 p1_closes = p1[p1["date"].dt.minute == p1_close]
 p1_closes = p1_closes.copy()
@@ -112,17 +118,9 @@ p2_tos = p2_tos.copy()
 p2_tos = p2_tos[["date", "price"]]
 p2_tos["date"] = p2_tos["date"].dt.floor("H")
 
-if do_ave_mode:
-    p2_entries = p2[(p2["date"].dt.minute >= p2_entry) &
-                    (p2["date"].dt.minute < p2_close)]
-    p2_entries = p2_entries.copy()
-    p2_entries["date"] = p2_entries["date"].dt.floor("H")
-    p2_entries = p2_entries.groupby(pd.Grouper(key="date", freq="1h")).mean()
-    p2_entries = p2_entries.reset_index()
-else:
-    p2_entries = p2[p2["date"].dt.minute == p2_entry]
-    p2_entries = p2_entries.copy()
-    p2_entries["date"] = p2_entries["date"].dt.floor("H")
+p2_entries = p2[p2["date"].dt.minute == p2_entry]
+p2_entries = p2_entries.copy()
+p2_entries["date"] = p2_entries["date"].dt.floor("H")
 
 p2_closes = p2[p2["date"].dt.minute == p2_close]
 p2_closes = p2_closes.copy()
@@ -139,66 +137,149 @@ p2_tradings = pd.merge(p2_tradings, p2_closes, on="date", how="inner")
 p2_tradings = p2_tradings.rename(columns={"price": "close_price"})
 
 tradings = p1_tradings.append(p2_tradings)
-tradings = tradings[~((tradings["date"].dt.hour >= 3) &
-                      (tradings["date"].dt.hour <= 7))]
-tradings = tradings.sort_values("date")
 
 tradings = tradings[~((tradings["side"] == "SELL") & (tradings["sfd"] <= -5))]
 tradings = tradings[~((tradings["side"] == "BUY") & (tradings["sfd"] >= 5))]
-tradings = tradings[["date", "side", "entry_price", "close_price", "rsi"]]
+
+tradings = tradings[["date", "side", "entry_price", "close_price"]]
+
 tradings["amount"] = bet / tradings["entry_price"]
 
 tradings_buy = tradings[tradings["side"] == "BUY"]
-tradings_buy = tradings_buy[tradings_buy["rsi"] < 50]
 tradings_buy = tradings_buy.copy()
 tradings_buy["profit"] = (
-    tradings_buy["amount"] * tradings_buy["close_price"]) - bet
+    (tradings_buy["amount"] * tradings_buy["close_price"]) - bet) * leverage
 
 tradings_sell = tradings[tradings["side"] == "SELL"]
-tradings_sell = tradings_sell[tradings_sell["rsi"] > 50]
 tradings_sell = tradings_sell.copy()
-tradings_sell["profit"] = bet - \
-    (tradings_sell["amount"] * tradings_sell["close_price"])
+tradings_sell["profit"] = (
+    bet - (tradings_sell["amount"] * tradings_sell["close_price"])) * leverage
 
 result = tradings_buy.append(tradings_sell)
 result = result[["date", "profit"]]
-result = result[(result["date"].dt.hour != 8) &
-                (result["date"].dt.hour != 10) &
-                (result["date"].dt.hour != 21) &
-                (result["date"].dt.hour != 3) &
-                (result["date"].dt.hour != 4) &
-                (result["date"].dt.hour != 5) &
-                (result["date"].dt.hour != 6) &
-                (result["date"].dt.hour != 7)]
+
+#####################################################
+# 1 時 pf 1.5164516956966347
+# 7 時 pf 1.402583447407872
+# 13 時 pf 1.5134861441204566
+# 15 時 pf 1.5410675713054829
+# 20 時 pf 1.4832743274541111
+#####################################################
+result = result[(result["date"].dt.hour == 1) |
+                (result["date"].dt.hour == 7) |
+                (result["date"].dt.hour == 13) |
+                (result["date"].dt.hour == 15) |
+                (result["date"].dt.hour == 20)]
+
+##############################################################
+sql = """
+        select
+            perp.date,
+            perp.open as f_open,
+            perp.close as f_close,
+            (perp.open / spot.open - 1) * 100 as sfd
+        from
+            ohlcv_1min_bitflyer_perp perp
+            inner join
+                ohlcv_1min_bitflyer_spot spot
+            on  perp.date = spot.date
+        # where
+            # perp.date between '2021-01-01 00:00:00' and '2099-01-01 00:00:00'
+        order by
+            date
+        """
+
+data = repository.read_sql(database=database, sql=sql)
+
+history = data.copy()
+history["date"] = history["date"].shift(60 * 1)
+history["open"] = history["f_open"].shift(60 * 1)
+history["close"] = history["f_close"].shift(60 * 1)
+history = history.iloc[60 * 1:]
+del history["close"]
+del history["f_open"]
+history = history[["date", "open", "f_close", "sfd"]]
+history = history.rename(
+    columns={
+        "open": "entry_price",
+        "f_close": "close_price"})
+
+history = history[history["date"].dt.minute == 0]
+history = history[history["sfd"] < 5]
+
+#####################################################
+# i 6 pf 1.6479730325205402 wp 56.65829145728644 t_cnt 796
+# i 22 pf 1.3534484737044181 wp 53.91414141414141 t_cnt 792
+#####################################################
+history = history[(history["date"].dt.hour == 6) |
+                  (history["date"].dt.hour == 22)]
+
+history["profit"] = (((bet / history["entry_price"]) *
+                      history["close_price"]) - bet) * leverage
+result2 = history[["date", "profit"]]
+result = result.append(result2)
+##############################################################
+
 result = result.sort_values("date")
 result = result.reset_index(drop=True)
 
 start_date = result["date"].iloc[0]
 end_date = result["date"].iloc[len(result) - 1]
 
+cnt = len(result)
+
 wins = result["profit"][result["profit"] > 0]
 loses = result["profit"][result["profit"] < 0]
 
-profit = int(result["profit"].sum() * leverage)
-pf = wins.sum() / -(loses.sum())
-pf = math.round_down(pf, -2)
+pf = wins.sum() / -loses.sum()
 wp = len(wins) / (len(wins) + len(loses)) * 100
-wp = math.round_down(wp, 0)
-cnt = len(result)
-
-log.info(start_date, "～", end_date)
-log.info("総利益", add_price_comma(profit), "円")
-log.info("pf", pf)
-log.info("wp", wp)
-log.info("cnt", cnt)
 
 asset_flow = []
 p = 0
 for i in range(len(result)):
-    p += result.iloc[i]["profit"]
     asset_flow.append(p)
+    p += result.iloc[i]["profit"]
+
+print("----------------------------------------------------------")
+print("単利パフォーマンス")
+print(start_date, "～", end_date)
+print("bet", add_price_comma(bet))
+print("総利益", add_price_comma(int(result["profit"].sum())), "円")
+print("pf", pf)
+print("wp", int(wp))
+print("cnt", cnt)
 
 fig = plt.figure(figsize=(24, 12), dpi=50)
 ax1 = fig.add_subplot(1, 1, 1)
 ax1.plot(list(range(len(asset_flow))), asset_flow)
-fig.savefig("backtest_result.png")
+fig.savefig("backtest_result_単利.png")
+
+
+asset_flow = []
+wins = []
+loses = []
+initial_bet = bet
+for i in range(len(result)):
+    asset_flow.append(bet)
+    p = (result.iloc[i]["profit"] / initial_bet) * bet
+    if p > 0:
+        wins.append(p)
+    else:
+        loses.append(p)
+    bet += p
+
+pf = sum(wins) / -sum(loses)
+
+print("----------------------------------------------------------")
+print("複利パフォーマンス")
+print(start_date, "～", end_date)
+print("initial_bet", add_price_comma(initial_bet))
+print("総利益", add_price_comma(int(bet)), "円")
+print("pf", pf)
+print("wp", int(wp))
+print("cnt", cnt)
+
+fig = plt.figure(figsize=(24, 12), dpi=50)
+ax1 = fig.add_subplot(1, 1, 1)
+ax1.plot(list(range(len(asset_flow))), asset_flow)
+fig.savefig("backtest_result_複利.png")

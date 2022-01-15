@@ -1,7 +1,7 @@
 import datetime
 
-from lib import bitflyer, indicator, log, repository
-from lib.config import Anomaly, Bitflyer, Trading
+from lib import bitflyer, log, repository
+from lib.config import Anomaly1, Anomaly2, Bitflyer
 
 
 def non_sfd_fee(side):
@@ -14,12 +14,7 @@ def non_sfd_fee(side):
 
 
 def reduce_execution_history():
-    date = datetime.datetime.now() - datetime.timedelta(hours=1)
-    year = date.year
-    month = date.month
-    day = date.day
-    hour = date.hour
-    first_date = datetime.datetime(year, month, day, hour, 0, 0, 0)
+    first_date = datetime.datetime.now() - datetime.timedelta(minutes=30)
     sql = f"delete from execution_history where date < '{first_date}'"
     repository.execute(database=DATABASE, sql=sql, write=False)
 
@@ -58,7 +53,6 @@ def get_historical_price():
                 date
             """
     df = repository.read_sql(database=DATABASE, sql=sql)
-    df = indicator.add_rsi(df=df, value=1, use_columns="price")
     return df
 
 
@@ -73,12 +67,13 @@ def save_entry(side):
             pass
 
 
-ANALYSIS_FROM_MINUTE = Anomaly.ANALYSIS_FROM_MINUTE.value
-ANALYSIS_TO_MINUTE = Anomaly.ANALYSIS_TO_MINUTE.value
-ENTRY_MINUTE = Anomaly.ENTRY_MINUTE.value
-CLOSE_MINUTE = Anomaly.CLOSE_MINUTE.value
+ANOMALY1_TRADING_HOUR = Anomaly1.TRADING_HOUR.value
+ANOMALY1_ANALYSIS_FROM_MINUTE = Anomaly1.ANALYSIS_FROM_MINUTE.value
+ANOMALY1_ANALYSIS_TO_MINUTE = Anomaly1.ANALYSIS_TO_MINUTE.value
+ANOMALY1_ENTRY_MINUTE = Anomaly1.ENTRY_MINUTE.value
+ANOMALY1_CLOSE_MINUTE = Anomaly1.CLOSE_MINUTE.value
 
-MENTAINANCE_HOUR = Trading.MENTAINANCE_HOUR.value
+ANOMALY2_TRADING_HOUR = Anomaly2.TRADING_HOUR.value
 
 bitflyer = bitflyer.API(api_key=Bitflyer.Api.value.KEY.value,
                         api_secret=Bitflyer.Api.value.SECRET.value)
@@ -92,45 +87,53 @@ while True:
     hp = get_historical_price()
     if hp.empty:
         break
+
     latest = hp.iloc[len(hp) - 1]
     date = latest["date"]
     hour = date.hour
     minute = date.minute
 
-    if hour in MENTAINANCE_HOUR:
-        continue
+    if hour in ANOMALY1_TRADING_HOUR:
+        for i in range(len(ANOMALY1_ENTRY_MINUTE)):
+            if minute == ANOMALY1_ENTRY_MINUTE[i] and not has_contract:
 
-    for i in range(len(ENTRY_MINUTE)):
-        if minute == ENTRY_MINUTE[i] and not has_contract:
-
-            fr_recorde = hp[hp["date"].dt.minute == ANALYSIS_FROM_MINUTE[i]]
-            if fr_recorde.empty:
-                break
-            fr = fr_recorde.iloc[0]
-            fr_price = fr["price"]
-
-            to_recorde = hp[hp["date"].dt.minute == ANALYSIS_TO_MINUTE[i]]
-            if to_recorde.empty:
-                break
-            to = to_recorde.iloc[0]
-            to_price = to["price"]
-
-            if (to_price - fr_price) < 0:
-                side = "BUY"
-                if not latest["rsi"] < 50:
+                fr_recorde = hp[hp["date"].dt.minute ==
+                                ANOMALY1_ANALYSIS_FROM_MINUTE[i]]
+                if fr_recorde.empty:
                     break
-            else:
-                side = "SELL"
-                if not latest["rsi"] > 50:
-                    break
+                fr = fr_recorde.iloc[0]
+                fr_price = fr["price"]
 
-            if non_sfd_fee(side=side):
-                save_entry(side=side)
+                to_recorde = hp[hp["date"].dt.minute ==
+                                ANOMALY1_ANALYSIS_TO_MINUTE[i]]
+                if to_recorde.empty:
+                    break
+                to = to_recorde.iloc[0]
+                to_price = to["price"]
+
+                if (to_price - fr_price) < 0:
+                    side = "BUY"
+                else:
+                    side = "SELL"
+
+                if non_sfd_fee(side=side):
+                    save_entry(side=side)
+
                 has_contract = True
 
-            break
+        for i in range(len(ANOMALY1_CLOSE_MINUTE)):
+            if minute == ANOMALY1_CLOSE_MINUTE[i] and has_contract:
+                save_entry(side="CLOSE")
+                has_contract = False
 
-    for i in range(len(CLOSE_MINUTE)):
-        if minute == CLOSE_MINUTE[i] and has_contract:
+    if hour in ANOMALY2_TRADING_HOUR:
+        if minute == 0 and not has_contract:
+            side = "BUY"
+            if non_sfd_fee(side=side):
+                save_entry(side=side)
+
+            has_contract = True
+
+        if minute == 59 and has_contract:
             save_entry(side="CLOSE")
             has_contract = False
