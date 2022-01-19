@@ -12,6 +12,7 @@ import websocket
 
 from lib import repository
 from lib.config import Bitflyer
+from lib.mysql import MySQL
 
 # -------------------------------------
 key = Bitflyer.Api.value.KEY.value
@@ -94,10 +95,12 @@ class bFwebsocket(object):
                         price = r["price"]
                         size = str(r["size"])
                         sql = f"insert into execution_history values (null,'{date}','{side}',{price},'{size}')"
-                        repository.execute(
-                            database=database, sql=sql, use_log=False)
+                        cur.execute(sql)
+                        print(sql)
                     except Exception:
                         pass
+
+            conn.commit()
 
         def auth(ws):
             now = int(time.time())
@@ -125,6 +128,8 @@ class bFwebsocket(object):
 
 
 if __name__ == '__main__':
+    conn = MySQL(database=database).conn
+    cur = conn.cursor()
     signal.signal(signal.SIGINT, quit_loop)
     ws = bFwebsocket(end_point, public_channels, private_channels, key, secret)
     ws.startWebsocket()
