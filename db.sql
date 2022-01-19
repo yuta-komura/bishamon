@@ -24,6 +24,26 @@ CREATE TABLE `execution_history_bybit` (
   KEY `execution_history_bybit1` (`date`)
 );
 
+CREATE TABLE `ohlcv_1min_quoine_spot` (
+  `date` datetime NOT NULL,
+  `open` int unsigned NOT NULL,
+  `high` int unsigned NOT NULL,
+  `low` int unsigned NOT NULL,
+  `close` int unsigned NOT NULL,
+  `volume` decimal(65, 8) unsigned NOT NULL,
+  KEY `ohlcv_1min_quoine_spot1` (`date`)
+);
+
+CREATE TABLE `ohlcv_1sec_quoine_spot` (
+  `date` datetime(6) NOT NULL,
+  `open` int unsigned NOT NULL,
+  `high` int unsigned NOT NULL,
+  `low` int unsigned NOT NULL,
+  `close` int unsigned NOT NULL,
+  `volume` decimal(65, 8) unsigned NOT NULL,
+  KEY `ohlcv_1sec_quoine_spot1` (`date`)
+);
+
 CREATE TABLE `ohlcv_1min_bitflyer_spot` (
   `date` datetime NOT NULL,
   `open` int unsigned NOT NULL,
@@ -42,6 +62,16 @@ CREATE TABLE `ohlcv_1min_bitflyer_perp` (
   `close` int unsigned NOT NULL,
   `volume` decimal(65, 8) unsigned NOT NULL,
   KEY `ohlcv_1min_bitflyer_perp1` (`date`)
+);
+
+CREATE TABLE `ohlcv_1sec_bitflyer_perp` (
+  `date` datetime(6) NOT NULL,
+  `open` int unsigned NOT NULL,
+  `high` int unsigned NOT NULL,
+  `low` int unsigned NOT NULL,
+  `close` int unsigned NOT NULL,
+  `volume` decimal(65, 8) unsigned NOT NULL,
+  KEY `ohlcv_1sec_bitflyer_perp1` (`date`)
 );
 
 CREATE TABLE `ohlcv_1min_binance_perp` (
