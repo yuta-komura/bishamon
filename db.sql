@@ -97,3 +97,23 @@ CREATE TABLE `coinapi_key` (
   `key` varchar(255) NOT NULL,
   PRIMARY KEY (`key`)
 );
+
+CREATE TABLE `ask` (
+  `date` datetime(6) NOT NULL,
+  `price` int unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  KEY `ask1` (`date`)
+);
+
+CREATE TABLE `bid` (
+  `date` datetime(6) NOT NULL,
+  `price` int unsigned NOT NULL,
+  `size` decimal(65, 30) unsigned NOT NULL,
+  KEY `bid1` (`date`)
+);
+
+CREATE TABLE `mid` (
+  `date` datetime(6) NOT NULL,
+  `price` int unsigned NOT NULL,
+  KEY `mid1` (`date`)
+);
