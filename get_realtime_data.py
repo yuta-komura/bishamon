@@ -10,7 +10,7 @@ from threading import Thread
 import pandas as pd
 import websocket
 
-from lib import repository
+from lib import log
 from lib.config import Bitflyer
 from lib.mysql import MySQL
 
@@ -47,7 +47,7 @@ class bFwebsocket(object):
 
     def startWebsocket(self):
         def on_open(ws):
-            print("Websocket connected")
+            log.info("websocket connected")
 
             if len(self._private_channels) > 0:
                 auth(ws)
@@ -58,10 +58,10 @@ class bFwebsocket(object):
                 ws.send(json.dumps(params))
 
         def on_error(ws, error):
-            print(error)
+            log.error(error)
 
         def on_close(ws):
-            print("Websocket closed")
+            log.info("websocket closed")
 
         def run(ws):
             while True:
@@ -73,7 +73,7 @@ class bFwebsocket(object):
 
             if 'id' in messages and messages['id'] == self._JSONRPC_ID_AUTH:
                 if 'error' in messages:
-                    print('auth error: {}'.format(messages["error"]))
+                    log.info('auth error: {}'.format(messages["error"]))
                 elif 'result' in messages and messages['result']:
                     params = [{'method': 'subscribe', 'params': {'channel': c}}
                               for c in self._private_channels]
@@ -96,7 +96,6 @@ class bFwebsocket(object):
                         size = str(r["size"])
                         sql = f"insert into execution_history values (null,'{date}','{side}',{price},'{size}')"
                         cur.execute(sql)
-                        print(sql)
                     except Exception:
                         pass
 
