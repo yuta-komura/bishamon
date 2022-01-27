@@ -10,6 +10,7 @@ SCRIPT_DIR=$(
 
 python ${SCRIPT_DIR}/initialize.py
 
+python ${SCRIPT_DIR}/get_realtime_data.py &
 python ${SCRIPT_DIR}/entry.py &
 python ${SCRIPT_DIR}/entry_to_position.py &
 
