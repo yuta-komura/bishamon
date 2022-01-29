@@ -1,5 +1,4 @@
 import inspect
-import os
 from datetime import datetime
 from logging import DEBUG, FileHandler, Formatter, StreamHandler, getLogger
 
@@ -23,9 +22,9 @@ def warning(*contents):
 
 
 def error(*contents):
-    with open(os.getcwd() + "/log/error_date.log", mode='w') as f:
-        f.write(str(datetime.now()))
     content = __tuple_to_string(contents)
+    with open("/mnt/c/Users/esfgs/bishamon/log/error_date.log", mode='w') as f:
+        f.write(str(datetime.now()) + " " + content)
     file_path = str(__get_file_path()).replace(DirPath.PROJECT.value, "")
     logger.error(msg=content, extra={'file_path': file_path})
     line.notify(content)
