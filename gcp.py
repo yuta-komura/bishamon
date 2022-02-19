@@ -161,14 +161,6 @@ class bFwebsocket(object):
 if __name__ == '__main__':
     conn = MySQL(database=database).conn
     cur = conn.cursor()
-    sql = "truncate ask"
-    cur.execute(sql)
-    sql = "truncate bid"
-    cur.execute(sql)
-    sql = "truncate mid"
-    cur.execute(sql)
-    sql = "insert into mid values(0)"
-    cur.execute(sql)
     signal.signal(signal.SIGINT, quit_loop)
     ws = bFwebsocket(end_point, public_channels, private_channels, key, secret)
     ws.startWebsocket()
