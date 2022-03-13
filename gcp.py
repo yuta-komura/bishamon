@@ -19,7 +19,9 @@ secret = Bitflyer.Api.value.SECRET.value
 
 end_point = 'wss://ws.lightstream.bitflyer.com/json-rpc'
 
-public_channels = ["lightning_executions_FX_BTC_JPY"]
+public_channels = [
+    "lightning_executions_FX_BTC_JPY",
+    "lightning_executions_BTC_JPY"]
 
 private_channels = []
 database = "tradingbot"
@@ -86,6 +88,19 @@ class bFwebsocket(object):
             channel = params["channel"]
             recept_data = params["message"]
 
+            if channel == "lightning_executions_BTC_JPY":
+                for r in recept_data:
+                    date = pd.to_datetime(
+                        r["exec_date"]).tz_convert('Asia/Tokyo')
+                    side = r["side"]
+                    price = r["price"]
+                    size = str(r["size"])
+                    sql = f"insert into execution_history_bitflyer_spot values ('{date}','{side}',{price},'{size}')"
+                    try:
+                        cur.execute(sql)
+                    except Exception:
+                        pass
+
             if channel == "lightning_executions_FX_BTC_JPY":
                 for r in recept_data:
                     date = pd.to_datetime(
@@ -93,7 +108,7 @@ class bFwebsocket(object):
                     side = r["side"]
                     price = r["price"]
                     size = str(r["size"])
-                    sql = f"insert into execution_history values ('{date}','{side}',{price},'{size}')"
+                    sql = f"insert into execution_history_bitflyer_perp values ('{date}','{side}',{price},'{size}')"
                     try:
                         cur.execute(sql)
                     except Exception:
