@@ -35,7 +35,7 @@ def get_prices():
         limit = SMA2
         sql = f"""
         select
-            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as date
+            date_format(op.date, '%Y-%m-%d %H:%i:00') as date
             , op.price as price
         from
             (
