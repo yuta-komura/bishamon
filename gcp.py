@@ -95,7 +95,7 @@ class bFwebsocket(object):
                     side = r["side"]
                     price = r["price"]
                     size = str(r["size"])
-                    sql = f"insert into execution_history_bitflyer_spot values ('{date}','{side}',{price},'{size}')"
+                    sql = f"insert into execution_history_bitflyer_spot values (null, '{date}','{side}',{price},'{size}')"
                     try:
                         cur.execute(sql)
                     except Exception:
@@ -108,7 +108,7 @@ class bFwebsocket(object):
                     side = r["side"]
                     price = r["price"]
                     size = str(r["size"])
-                    sql = f"insert into execution_history_bitflyer_perp values ('{date}','{side}',{price},'{size}')"
+                    sql = f"insert into execution_history_bitflyer_perp values (null, '{date}','{side}',{price},'{size}')"
                     try:
                         cur.execute(sql)
                     except Exception:
