@@ -1,10 +1,8 @@
 import datetime
-import sys
 import time
 import traceback
 
 import pandas as pd
-import requests
 
 from lib import bitflyer, indicator, log, repository
 from lib.config import Anomaly1, Bitflyer
@@ -19,6 +17,12 @@ def non_sfd_fee(side):
         return True
 
 
+def reduce_execution_history():
+    first_date = datetime.datetime.now() - datetime.timedelta(minutes=500)
+    sql = f"delete from execution_history where date < '{first_date}'"
+    repository.execute(database=DATABASE, sql=sql, write=False)
+
+
 def get_backmin(fr_min, to_min):
     if to_min - fr_min >= 0:
         return to_min - fr_min
@@ -27,55 +31,50 @@ def get_backmin(fr_min, to_min):
 
 
 def get_prices():
-    while True:
-        try:
-            sql = "select `key` from coinapi_key where can_use = 1"
-            keys = repository.read_sql(database=DATABASE, sql=sql)
-            if keys.empty:
-                log.error("key lost")
-                sys.exit()
-            keys = keys["key"].to_list()
-
-            symbol_id = "BITFLYERLTNG_PERP_BTC_JPY"
-            period_id = "1MIN"
-            limit = SMA2
-            url = f"https://rest.coinapi.io/v1/ohlcv/{symbol_id}/latest"
-            params = {"period_id": period_id, "limit": limit}
-            while True:
-                headers = {"X-CoinAPI-Key": keys[0]}
-                response = requests.get(
-                    url, headers=headers, params=params).json()
-                if "error" in response:
-                    sql = f"update coinapi_key set can_use=0 where `key`='{keys[0]}'"
-                    repository.execute(database=DATABASE, sql=sql, write=False)
-                    if len(keys) - 1 <= 0:
-                        log.error("key lost")
-                        sys.exit()
-                    else:
-                        del keys[0]
-                        continue
-                else:
-                    break
-            response = pd.DataFrame(response)
-            if len(response) != limit:
-                return None
-            prices = response.copy()
-            prices["date"] = pd.to_datetime(
-                response["time_period_start"],
-                utc=True).dt.tz_convert("Asia/Tokyo")
-            prices = prices.rename(columns={"price_open": "price"})
-            prices = prices[["date", "price"]]
-            prices = prices.sort_values("date").reset_index(drop=True)
-            prices = indicator.add_rsi(
-                df=prices, value=RSI, use_columns="price")
-            prices = indicator.add_sma(
-                df=prices, value=SMA1, use_columns="price")
-            prices = indicator.add_sma(
-                df=prices, value=SMA2, use_columns="price")
-            prices = prices[limit - 30:].reset_index(drop=True)
-            return prices
-        except Exception:
-            log.error(traceback.format_exc())
+    try:
+        limit = SMA2
+        sql = f"""
+        select
+            date_format(cast(op.date as datetime), '%Y-%m-%d %H:%i:00') as date
+            , op.price as price
+        from
+            (
+                select
+                    min(id) as open_id
+                from
+                    execution_history
+                group by
+                    year (date)
+                    , month (date)
+                    , day (date)
+                    , hour (date)
+                    , minute (date)
+            ) ba
+            inner join execution_history op
+                on op.id = ba.open_id
+        order by
+            date desc
+        limit
+            {limit}
+        """
+        df = repository.read_sql(database=DATABASE, sql=sql)
+        if len(df) != limit:
+            return None
+        prices = df.copy()
+        prices["date"] = pd.to_datetime(
+            prices["date"]).dt.tz_localize("Asia/Tokyo")
+        prices["price"] = prices["price"].astype(int)
+        prices = df.sort_values("date").reset_index(drop=True).copy()
+        prices = indicator.add_rsi(
+            df=prices, value=RSI, use_columns="price")
+        prices = indicator.add_sma(
+            df=prices, value=SMA1, use_columns="price")
+        prices = indicator.add_sma(
+            df=prices, value=SMA2, use_columns="price")
+        prices = prices[limit - 30:].reset_index(drop=True)
+        return prices
+    except Exception:
+        log.error(traceback.format_exc())
 
 
 def save_entry(side):
@@ -105,6 +104,7 @@ DATABASE = "tradingbot"
 
 has_contract = False
 while True:
+    reduce_execution_history()
 
     date = datetime.datetime.now()
     date = pd.to_datetime(date)
@@ -124,9 +124,6 @@ while True:
                 fr_date = td[td.minute == ANALYSIS_FROM_MINUTE[i]][0]
                 to_date = td[td.minute == ANALYSIS_TO_MINUTE[i]][0]
                 entry_date = td[td.minute == ENTRY_MINUTE[i]][0]
-                print("fr_date", fr_date)
-                print("to_date", to_date)
-                print("entry_date", entry_date)
 
                 get_prices_cnt = 0
                 while True:
@@ -138,16 +135,18 @@ while True:
                     except Exception:
                         get_prices_cnt += 1
                         if get_prices_cnt >= 100:
-                            log.error("get_prices_cnt >= 100")
-                            sys.exit()
+                            break
                         else:
                             time.sleep(1)
+                if prices is None or entry_recorde.empty:
+                    log.error("prices is None or entry_recorde.empty")
+                    continue
 
                 fr_recorde = prices[prices["date"] == fr_date]
                 to_recorde = prices[prices["date"] == to_date]
 
-                print("entry")
-                print(entry)
+                print("entry_recorde")
+                print(entry_recorde)
                 print("fr_recorde")
                 print(fr_recorde)
                 print("to_recorde")
