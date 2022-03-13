@@ -1,4 +1,3 @@
-import datetime
 import hmac
 import json
 import os
@@ -20,9 +19,7 @@ secret = Bitflyer.Api.value.SECRET.value
 
 end_point = 'wss://ws.lightstream.bitflyer.com/json-rpc'
 
-public_channels = [
-    'lightning_executions_FX_BTC_JPY',
-    "lightning_board_FX_BTC_JPY"]
+public_channels = ["lightning_executions_FX_BTC_JPY"]
 
 private_channels = []
 database = "tradingbot"
@@ -101,35 +98,6 @@ class bFwebsocket(object):
                         cur.execute(sql)
                     except Exception:
                         pass
-
-            if channel == "lightning_board_FX_BTC_JPY":
-                date = datetime.datetime.now()
-                asks = recept_data["asks"]
-                for a in asks:
-                    price = a["price"]
-                    size = str(a["size"])
-                    sql = f"insert into ask values ('{date}',{price},'{size}')"
-                    try:
-                        cur.execute(sql)
-                    except Exception:
-                        pass
-
-                bids = recept_data["bids"]
-                for b in bids:
-                    price = b["price"]
-                    size = str(b["size"])
-                    sql = f"insert into bid values ('{date}',{price},'{size}')"
-                    try:
-                        cur.execute(sql)
-                    except Exception:
-                        pass
-
-                price = recept_data["mid_price"]
-                sql = f"insert into mid values ('{date}',{price})"
-                try:
-                    cur.execute(sql)
-                except Exception:
-                    pass
 
             conn.commit()
 
