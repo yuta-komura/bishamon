@@ -14,105 +14,68 @@ class API:
         self.PRODUCT_CODE = "FX_BTC_JPY"
         self.LEVERAGE = Decimal("2")
         self.DATABASE = "tradingbot"
+        self.NORMAL_ORDER_SIZE = Decimal("0.01")
 
     def order(self, side):
         log.info(side, "order start")
         try:
             while True:
-                self.__cancelallchildorders()
-
-                position = self.__get_position()
-
-                has_position = position["side"] is not None
-                should_close = has_position and side != position["side"] \
-                    and not position["size"] < 0.000001
-                if should_close:
-                    self.close()
-                    continue
-
-                price = self.__get_order_price(side=side)
-
-                size = self.__get_order_size(price=price,
-                                             position_size=position["size"])
-
-                has_completed_order = size < 0.01 \
-                    or self.__has_changed_side(side=side)
-                if has_completed_order:
+                response = \
+                    self.__send_order(side=side, size=self.NORMAL_ORDER_SIZE)
+                if "child_order_acceptance_id" not in response:
                     log.info(side, "order complete")
                     return
-
-                self.__send_order(side=side, size=size, price=price)
-
-                time.sleep(1)
+                time.sleep(2)
         except Exception:
             log.error(traceback.format_exc())
 
     def close(self):
-        log.info("close start")
+        log.info("CLOSE start")
         try:
             while True:
-                self.__cancelallchildorders()
-
                 position = self.__get_position()
 
                 has_completed_close = position["size"] < 0.000001
                 if has_completed_close:
-                    log.info("close complete")
+                    log.info("CLOSE complete")
                     return
 
-                has_waste_size = 0.000001 <= position["size"] < 0.01
-                if has_waste_size:
-                    log.info("has waste size")
-                    side = position["side"]
-                    size = 0.01
-                    price = self.__get_order_price(side=side)
-                    self.__send_order(side=side, size=size, price=price)
-                    time.sleep(1)
-                    continue
-
                 side = self.__reverse_side(side=position["side"])
-                size = position["size"]
-                price = self.__get_order_price(side=side)
+                order_num = int(position["size"] / self.NORMAL_ORDER_SIZE) - 1
+                for _ in range(order_num):
+                    self.__send_order(side=side, size=self.NORMAL_ORDER_SIZE)
+                    time.sleep(2)
 
-                self.__send_order(side=side, size=size, price=price)
-
-                time.sleep(1)
+                ordered_size = Decimal(str(order_num)) * self.NORMAL_ORDER_SIZE
+                remaining_size = position["size"] - ordered_size
+                self.__send_order(side=side, size=remaining_size)
+                time.sleep(2)
         except Exception:
             log.error(traceback.format_exc())
 
     def __reverse_side(self, side):
-        if side == "BUY":
-            return "SELL"
-        if side == "SELL":
-            return "BUY"
+        return "SELL" if side == "BUY" else "BUY"
 
-    def __send_order(self, side, size, price):
+    def __send_order(self, side, size):
         try:
-            side, size, price = \
-                self.__order_normalize(side=side, size=size, price=price)
-
-            self.api.sendchildorder(
+            side, size = self.__order_normalize(side=side, size=size)
+            response = self.api.sendchildorder(
                 product_code=self.PRODUCT_CODE,
-                child_order_type="LIMIT",
+                child_order_type="MARKET",
                 side=side,
                 size=size,
-                price=price,
                 minute_to_expire=1,
                 time_in_force="GTC"
             )
-
-            sendchildorder_content = \
-                "side={side}, size={size}, price={price}"\
-                .format(side=side, size=size, price=price)
-            log.info("sendchildorder", sendchildorder_content)
+            log.info("sendchildorder", f"side={side}, size={size}")
+            return response
         except Exception:
             log.error(traceback.format_exc())
 
     @staticmethod
-    def __order_normalize(side, size, price):
+    def __order_normalize(side, size):
         size = float(math.round_down(size, -6))
-        price = int(price)
-        return side, size, price
+        return side, size
 
     def __get_order_size(self, price, position_size):
         collateral = None
