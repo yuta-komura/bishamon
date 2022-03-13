@@ -1,11 +1,18 @@
 import datetime
-import time
 import traceback
 
 import pandas as pd
 
 from lib import bitflyer, indicator, log, repository
 from lib.config import Anomaly1, Bitflyer
+
+
+def get_date():
+    date = datetime.datetime.now()
+    date = pd.to_datetime(date)
+    date = date.tz_localize("Asia/Tokyo")
+    date = date.floor("T")
+    return date
 
 
 def non_sfd_fee(side):
@@ -106,10 +113,7 @@ has_contract = False
 while True:
     reduce_execution_history()
 
-    date = datetime.datetime.now()
-    date = pd.to_datetime(date)
-    date = date.tz_localize("Asia/Tokyo")
-    date = date.floor("T")
+    date = get_date()
     hour = date.hour
     minute = date.minute
 
@@ -125,25 +129,30 @@ while True:
                 to_date = td[td.minute == ANALYSIS_TO_MINUTE[i]][0]
                 entry_date = td[td.minute == ENTRY_MINUTE[i]][0]
 
+                print(str(entry_date))
+                print(str(fr_date))
+                print(str(to_date))
+
                 get_prices_cnt = 0
                 while True:
                     try:
                         prices = get_prices()
-                        entry_recorde = prices[prices["date"] == entry_date]
+                        entry_recorde = \
+                            prices[prices["date"] == str(entry_date)]
                         entry = entry_recorde.iloc[0]
                         break
                     except Exception:
-                        get_prices_cnt += 1
-                        if get_prices_cnt >= 100:
+                        date = get_date()
+                        minute = date.minute
+                        if minute != ENTRY_MINUTE[i]:
                             break
-                        else:
-                            time.sleep(1)
+
                 if prices is None or entry_recorde.empty:
                     log.error("prices is None or entry_recorde.empty")
                     continue
 
-                fr_recorde = prices[prices["date"] == fr_date]
-                to_recorde = prices[prices["date"] == to_date]
+                fr_recorde = prices[prices["date"] == str(fr_date)]
+                to_recorde = prices[prices["date"] == str(to_date)]
 
                 print("entry_recorde")
                 print(entry_recorde)
