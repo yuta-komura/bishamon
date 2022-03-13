@@ -10,7 +10,6 @@ from threading import Thread
 import pandas as pd
 import websocket
 
-from lib import log
 from lib.config import Bitflyer
 from lib.mysql import MySQL
 
