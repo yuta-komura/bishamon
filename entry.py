@@ -10,7 +10,6 @@ from lib.config import Anomaly1, Bitflyer
 def get_date():
     date = datetime.datetime.now()
     date = pd.to_datetime(date)
-    date = date.tz_localize("Asia/Tokyo")
     date = date.floor("T")
     return date
 
@@ -68,8 +67,7 @@ def get_prices():
         if len(df) != limit:
             return None
         prices = df.copy()
-        prices["date"] = pd.to_datetime(
-            prices["date"]).dt.tz_localize("Asia/Tokyo")
+        prices["date"] = pd.to_datetime(prices["date"])
         prices["price"] = prices["price"].astype(int)
         prices = df.sort_values("date").reset_index(drop=True).copy()
         prices = indicator.add_rsi(
@@ -129,9 +127,9 @@ while True:
                 to_date = td[td.minute == ANALYSIS_TO_MINUTE[i]][0]
                 entry_date = td[td.minute == ENTRY_MINUTE[i]][0]
 
-                print(str(entry_date))
                 print(str(fr_date))
                 print(str(to_date))
+                print(str(entry_date))
 
                 get_prices_cnt = 0
                 while True:
