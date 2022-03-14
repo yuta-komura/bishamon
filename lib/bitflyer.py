@@ -17,27 +17,23 @@ class API:
         self.NORMAL_ORDER_SIZE = Decimal("0.01")
 
     def order(self, side):
-        log.info(side, "order start")
         try:
             while True:
                 response = \
                     self.__send_order(side=side, size=self.NORMAL_ORDER_SIZE)
                 if "child_order_acceptance_id" not in response:
-                    log.info(side, "order complete")
                     return
                 time.sleep(2)
         except Exception:
             log.error(traceback.format_exc())
 
     def close(self):
-        log.info("CLOSE start")
         try:
             while True:
                 position = self.__get_position()
 
                 has_completed_close = position["size"] < 0.000001
                 if has_completed_close:
-                    log.info("CLOSE complete")
                     return
 
                 side = self.__reverse_side(side=position["side"])
