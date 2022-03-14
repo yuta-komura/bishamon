@@ -7,13 +7,6 @@ from lib import bitflyer, indicator, log, repository
 from lib.config import Anomaly1, Bitflyer
 
 
-def get_date():
-    date = datetime.datetime.now()
-    date = pd.to_datetime(date)
-    date = date.floor("T")
-    return date
-
-
 def non_sfd_fee(side):
     sfd_ratio = bitflyer.get_sfd_ratio()
     if (side == "BUY" and sfd_ratio >= 5) or \
@@ -67,8 +60,6 @@ def get_prices():
         if len(df) != limit:
             return None
         prices = df.copy()
-        prices["date"] = pd.to_datetime(prices["date"])
-        prices["price"] = prices["price"].astype(int)
         prices = df.sort_values("date").reset_index(drop=True).copy()
         prices = indicator.add_rsi(
             df=prices, value=RSI, use_columns="price")
@@ -76,7 +67,8 @@ def get_prices():
             df=prices, value=SMA1, use_columns="price")
         prices = indicator.add_sma(
             df=prices, value=SMA2, use_columns="price")
-        prices = prices[limit - 30:].reset_index(drop=True)
+        prices["date"] = pd.to_datetime(prices["date"])
+        prices["price"] = prices["price"].astype(int)
         return prices
     except Exception:
         log.error(traceback.format_exc())
@@ -111,7 +103,11 @@ has_contract = False
 while True:
     reduce_execution_history()
 
-    date = get_date()
+    prices = get_prices()
+    if prices is None:
+        continue
+    latest = prices.iloc[len(prices) - 1].copy()
+    date = latest["date"]
     hour = date.hour
     minute = date.minute
 
@@ -120,6 +116,8 @@ while True:
             if minute == ENTRY_MINUTE[i] and not has_contract:
                 has_contract = True
 
+                entry = latest.copy()
+
                 backmin = get_backmin(ANALYSIS_FROM_MINUTE[i], ENTRY_MINUTE[i])
                 start_date = date - datetime.timedelta(minutes=backmin)
                 td = pd.date_range(start_date, periods=backmin + 1, freq="min")
@@ -127,40 +125,18 @@ while True:
                 to_date = td[td.minute == ANALYSIS_TO_MINUTE[i]][0]
                 entry_date = td[td.minute == ENTRY_MINUTE[i]][0]
 
-                print(str(fr_date))
-                print(str(to_date))
-                print(str(entry_date))
+                print("fr_date", fr_date)
+                print("to_date", to_date)
+                print("entry_date", entry_date)
 
-                get_prices_cnt = 0
-                while True:
-                    try:
-                        prices = get_prices()
-                        entry_recorde = \
-                            prices[prices["date"] == str(entry_date)]
-                        entry = entry_recorde.iloc[0]
-                        break
-                    except Exception:
-                        date = get_date()
-                        minute = date.minute
-                        if minute != ENTRY_MINUTE[i]:
-                            break
-
-                if prices is None or entry_recorde.empty:
-                    log.error("prices is None or entry_recorde.empty")
-                    continue
-
-                fr_recorde = prices[prices["date"] == str(fr_date)]
-                to_recorde = prices[prices["date"] == str(to_date)]
-
-                print("entry_recorde")
-                print(entry_recorde)
-                print("fr_recorde")
-                print(fr_recorde)
-                print("to_recorde")
-                print(to_recorde)
+                fr_recorde = prices[prices["date"] == fr_date]
+                to_recorde = prices[prices["date"] == to_date]
 
                 if fr_recorde.empty or to_recorde.empty:
                     break
+
+                print(fr_recorde)
+                print(to_recorde)
 
                 fr_price = fr_recorde["price"].iloc[0]
                 to_price = to_recorde["price"].iloc[0]
