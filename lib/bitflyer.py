@@ -63,7 +63,6 @@ class API:
                 minute_to_expire=1,
                 time_in_force="GTC"
             )
-            log.info("sendchildorder", f"side={side}, size={size}")
             return response
         except Exception:
             log.error(traceback.format_exc())

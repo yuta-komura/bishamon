@@ -79,6 +79,7 @@ def save_entry(side):
         try:
             sql = f"update entry set side='{side}'"
             repository.execute(database=DATABASE, sql=sql, write=False)
+            log.info(f"{side} entry")
             return
         except Exception:
             log.error(traceback.format_exc())
@@ -125,18 +126,11 @@ while True:
                 to_date = td[td.minute == ANALYSIS_TO_MINUTE[i]][0]
                 entry_date = td[td.minute == ENTRY_MINUTE[i]][0]
 
-                print("fr_date", fr_date)
-                print("to_date", to_date)
-                print("entry_date", entry_date)
-
                 fr_recorde = prices[prices["date"] == fr_date]
                 to_recorde = prices[prices["date"] == to_date]
 
                 if fr_recorde.empty or to_recorde.empty:
                     break
-
-                print(fr_recorde)
-                print(to_recorde)
 
                 fr_price = fr_recorde["price"].iloc[0]
                 to_price = to_recorde["price"].iloc[0]
