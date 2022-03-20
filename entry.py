@@ -115,7 +115,6 @@ while True:
     if hour in TRADING_HOUR:
         for i in range(len(ENTRY_MINUTE)):
             if minute == ENTRY_MINUTE[i] and not has_contract:
-                has_contract = True
 
                 entry = latest.copy()
 
@@ -146,6 +145,7 @@ while True:
 
                 if can_trading and non_sfd_fee(side=side):
                     save_entry(side=side)
+                    has_contract = True
 
         for i in range(len(CLOSE_MINUTE)):
             if minute == CLOSE_MINUTE[i] and has_contract:
