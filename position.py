@@ -30,7 +30,6 @@ while True:
     if side is None:
         continue
 
-    # 30秒ごとにcloseされているか確認する
     date = datetime.datetime.now()
     if side == "CLOSE" and date.second == 30:
         time.sleep(1)
