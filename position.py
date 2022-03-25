@@ -33,8 +33,8 @@ while True:
     # 30秒ごとにcloseされているか確認する
     date = datetime.datetime.now()
     if side == "CLOSE" and date.second == 30:
-        bitflyer.close()
         time.sleep(1)
+        bitflyer.close()
 
     if side != latest_side:
         if side == "CLOSE":
